@@ -1,3 +1,3 @@
 #include "variables.h"
 
-map<string, int> Variables;
+map<string, int> varTable;

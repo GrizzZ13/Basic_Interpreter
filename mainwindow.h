@@ -2,9 +2,17 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
+#include <QFileDialog>
+#include <QFile>
+#include <QTextStream>
 #include <QDebug>
-#include <buffer.h>
+#include <QString>
+#include <QTimer>
 #include <vector>
+#include "tree.h"
+#include "variables.h"
+#include "buffer.h"
+#include "statement.h"
 
 using std::vector;
 
@@ -19,17 +27,22 @@ class MainWindow : public QMainWindow
 private:
     Ui::MainWindow *ui;
     Buffer *textBuffer;
+    string handlingVar;
+    int handlingVal;
 
 public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
 
-public slots:
     void displayBuffer();
+    void doitNow(vector<string> &lineVec); //  LET, PRINT, INPUT
+    void handleCommand(vector<string> &lineVec); // Command
+    void insertLine(int lineNumber, vector<string> &lineVec); // insert a line
+
+public slots:
     void clearCode();
     void handleInput();
-    void doitNow(vector<string> lineVec); //  LET, PRINT, INPUT
-    void handleCommand(vector<string> lineVec); // Command
-    void insertLine(int lineNumber, vector<string> lineVec); // insert a line
+    void loadFile();
+    void runBegin();
 };
 #endif // MAINWINDOW_H

@@ -16,7 +16,6 @@ public:
     virtual int eval(map<string, int> &v) = 0;
     virtual string toString() = 0;
     virtual ExpressionType type() = 0;
-
 };
 
 
@@ -31,7 +30,6 @@ public:
 
     int value;
 };
-
 
 class IdentifierExp: public Expression
 {

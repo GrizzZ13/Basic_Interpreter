@@ -2,11 +2,13 @@
 #define BUFFER_H
 
 #include <QString>
+#include <vector>
 #include <string>
 #include <QTextStream>
 #include <sstream>
 
 using std::string;
+using std::vector;
 using std::stringstream;
 
 struct node{
@@ -19,6 +21,15 @@ struct node{
     }
 };
 
+struct dataNode{
+    int line;
+    QString data;
+
+    dataNode(int l, QString s){
+        line = l;
+        data = s;
+    }
+};
 
 class Buffer
 {
@@ -31,6 +42,7 @@ public:
     void newLine(int l, QString s);
     void clearBuffer();
     QString lineAll();
+    vector<dataNode> parseLine();
 //    void displayAll();
 //    void displayLine();
 };

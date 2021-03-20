@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>878</width>
-    <height>1002</height>
+    <width>600</width>
+    <height>688</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -131,17 +131,23 @@
     </item>
    </layout>
   </widget>
+  <widget class="QStatusBar" name="statusbar"/>
   <widget class="QMenuBar" name="menubar">
    <property name="geometry">
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>878</width>
+     <width>600</width>
      <height>22</height>
     </rect>
    </property>
+   <widget class="QMenu" name="menuBASIC_Interrpeter">
+    <property name="title">
+     <string>BASIC Interrpeter</string>
+    </property>
+   </widget>
+   <addaction name="menuBASIC_Interrpeter"/>
   </widget>
-  <widget class="QStatusBar" name="statusbar"/>
  </widget>
  <resources/>
  <connections/>

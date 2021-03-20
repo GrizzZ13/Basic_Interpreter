@@ -4,6 +4,7 @@
 Buffer::Buffer(){
     head = new node(0, "head");
     end = head;
+    end->next = nullptr;
 }
 
 Buffer::~Buffer(){
@@ -16,8 +17,23 @@ Buffer::~Buffer(){
 }
 
 void Buffer::newLine(int l, QString s){
-    end->next = new node(l, s);
-    end = end->next;
+    node *tmp = head;
+    node *insert;
+    while(tmp != end){
+        if(l > tmp->next->line){
+            tmp = tmp->next;
+        }
+        else{
+            insert = new node(l, s);
+            insert->next = tmp->next;
+            tmp->next = insert;
+            return;
+        }
+    }
+    // tmp == end
+    tmp->next = new node(l, s);
+    end = tmp->next;
+    end->next = nullptr;
 }
 
 void Buffer::clearBuffer(){
@@ -29,6 +45,7 @@ void Buffer::clearBuffer(){
         delete head;
         head = tmp;
     }
+    end->next = nullptr;
 }
 
 QString Buffer::lineAll(){
@@ -41,4 +58,17 @@ QString Buffer::lineAll(){
         retVal.append(lineNumber + "\t" + tmp->data + "\n");
     }
     return retVal;
+}
+
+vector<dataNode> Buffer::parseLine(){
+    vector<dataNode> NumData;//store line number and corresponding data
+    node *tmp = head->next;
+    dataNode tmp_node(0, "");
+    while(tmp != nullptr){
+        tmp_node.line = tmp->line;
+        tmp_node.data = tmp->data;
+        NumData.push_back(tmp_node);
+        tmp = tmp->next;
+    }
+    return NumData;
 }

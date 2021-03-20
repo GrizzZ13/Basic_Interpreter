@@ -5,6 +5,7 @@
 #include <string>
 using std::string;
 using std::map;
+using std::pair;
 
 extern map<string, int> varTable;
 

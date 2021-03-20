@@ -13,6 +13,7 @@ SOURCES += \
     expression.cpp \
     main.cpp \
     mainwindow.cpp \
+    statement.cpp \
     tree.cpp \
     variables.cpp
 
@@ -20,6 +21,7 @@ HEADERS += \
     buffer.h \
     expression.h \
     mainwindow.h \
+    statement.h \
     tree.h \
     variables.h
 
