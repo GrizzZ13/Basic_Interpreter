@@ -3,8 +3,14 @@
 Statement::Statement(){}
 
 /* ----------------------remark-------------------- */
+remarkStatement::remarkStatement(vector<string> &lineVec){
+    string tmp = "";
+    for(auto itr = lineVec.begin()+1;itr != lineVec.end();++itr){
+        tmp = tmp + " " + *itr;
+    }
+    remark = tmp;
+}
 
-// do nothing
 
 /* ----------------------input--------------------- */
 inputStatement::inputStatement(vector<string> &lineVec){
@@ -93,8 +99,8 @@ void ifStatement::execute(map<string, int> &v){
     flag = (bool)exp->eval(v);
 }
 
-int ifStatement::toLine(map<string, int> &v){
+intAndbool ifStatement::toLine(map<string, int> &v){
     execute(v);
-    return flag ? nextLine : -1;
+    return intAndbool(nextLine, flag);
     // -1 means do not jump
 }

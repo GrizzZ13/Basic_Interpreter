@@ -9,10 +9,14 @@
 #include <QString>
 #include <QTimer>
 #include <vector>
+#include <queue>
 #include "tree.h"
 #include "variables.h"
 #include "buffer.h"
+#include "expression.h"
 #include "statement.h"
+
+using std::queue;
 
 using std::vector;
 
@@ -38,6 +42,7 @@ public:
     void doitNow(vector<string> &lineVec); //  LET, PRINT, INPUT
     void handleCommand(vector<string> &lineVec); // Command
     void insertLine(int lineNumber, vector<string> &lineVec); // insert a line
+    QString syntaxTree(Expression *node);
 
 public slots:
     void clearCode();

@@ -66,6 +66,7 @@ void MainWindow::loadFile(){
 void MainWindow::runBegin(){
     vector<dataNode> NumData = textBuffer->parseLine();
     QString displayBuffer="";
+    QString thisLineNumber;
     stringstream ss;
     vector<string> lineVec;
     string thisLine;
@@ -73,10 +74,13 @@ void MainWindow::runBegin(){
     int length = (int)NumData.size();
     int index = 0;
     bool end = false;
+
+    QString syntax="";
     while(!end){
         lineVec.clear();
         ss.clear();
         thisLine = NumData[index].data.toStdString();
+        thisLineNumber = QString::number(NumData[index].line);
         ss << thisLine;
         while(ss >> fragment) lineVec.push_back(fragment);
         // remark
@@ -115,7 +119,11 @@ void MainWindow::runBegin(){
             end = false;
         }
         else if(lineVec[0]=="PRINT"){
+            syntax = syntax + thisLineNumber+ " PRINT\n";
             printStatement state(lineVec);
+            Expression *node = state.exp->root;
+            syntax = syntax + syntaxTree(node);
+            ui->browserStructure->setText(syntax);
             displayBuffer = displayBuffer + QString::number(state.getValue(varTable)) + '\n';
             ui->browserResult->setText(displayBuffer);
             index++;
@@ -125,8 +133,12 @@ void MainWindow::runBegin(){
             end = true;
         }
         else if(lineVec[0]=="LET"){
+            syntax = syntax + thisLineNumber + " LET";
             letStatement state(lineVec);
             if(state.getSuccess(varTable)){
+                Expression *node = state.exp->root;
+                syntax = syntax + syntaxTree(node);
+                ui->browserStructure->setText(syntax);
                 index++;
                 end = false;
             }
@@ -150,14 +162,18 @@ void MainWindow::runBegin(){
             if(flag == false){
                 ui->browserResult->setText("goto error occured");
                 end = true;
+            }else{
+                syntax = syntax + thisLineNumber + " GOTO\n" + "     " + QString::number(nextLine) + "\n";
+                ui->browserStructure->setText(syntax);
             }
         }
         else if(lineVec[0]=="IF"){
             ifStatement state(lineVec);
-            int nextLine = state.toLine(varTable);
+            int nextLine = state.toLine(varTable).i;
+            bool jump = state.toLine(varTable).b;
             bool flag = false;
 
-            if(nextLine == -1){// do not jump
+            if(!jump){// do not jump
                 index++;
                 end = false;
             }
@@ -175,6 +191,11 @@ void MainWindow::runBegin(){
                     end = true;
                 }
             }
+
+            syntax = syntax + thisLineNumber + " IF THEN\n";
+            Expression *node = state.exp->root;
+            syntax = syntax + syntaxTree(node) + "   " + QString::number(nextLine) + "\n";
+            ui->browserStructure->setText(syntax);
         }
         else{
             ui->browserResult->setText("invalid statement");
@@ -262,4 +283,52 @@ void MainWindow::insertLine(int lineNumber, vector<string> &lineVec){
     textBuffer->newLine(lineNumber, dataQS);
     displayBuffer();
     return;
+}
+
+QString MainWindow::syntaxTree(Expression *node){
+    Expression *tmp;
+    queue<Expression*> queueA;
+    queue<Expression*> queueB;
+    char popNow = 'A';
+    string output = "";
+    int layer = 1;
+
+    queueA.push(node);
+    while(true){
+        if(popNow == 'A'){
+            if(queueA.empty()) break;
+            tmp = queueA.front();
+            queueA.pop();
+            for(int i = 0;i < layer;i++){
+                output = output + "   ";
+            }
+            output = output + tmp->toString() + '\n';
+            if(tmp->type() == Comp){
+                queueB.push(((CompoundExp*)tmp)->left);
+                queueB.push(((CompoundExp*)tmp)->right);
+            }
+            if(queueA.empty()){
+                popNow = 'B';
+                layer++;
+            }
+        }
+        else{
+            if(queueB.empty()) break;
+            tmp = queueB.front();
+            queueB.pop();
+            for(int i = 0;i < layer;i++){
+                output = output + "   ";
+            }
+            output = output + tmp->toString() + '\n';
+            if(tmp->type() == Comp){
+                queueA.push(((CompoundExp*)tmp)->left);
+                queueA.push(((CompoundExp*)tmp)->right);
+            }
+            if(queueB.empty()){
+                popNow = 'A';
+                layer++;
+            }
+        }
+    }
+    return QString::fromStdString(output);
 }

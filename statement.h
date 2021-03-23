@@ -14,6 +14,13 @@ using std::string;
 //    statement();
 //};
 
+struct intAndbool{
+    int i;
+    bool b;
+
+    intAndbool(int x, bool y):i(x),b(y){}
+};
+
 enum stateType {Remark, Input, Print, End, Let, Goto, If};
 
 class Statement{
@@ -26,10 +33,12 @@ public:
 
 class remarkStatement:public Statement{
 public:
-    remarkStatement(){};
+    remarkStatement(vector<string> &lineVec);
     ~remarkStatement(){};
     void execute(map<string, int> &v){};
     stateType type(){return Remark;}
+
+    string remark;
 };
 
 class inputStatement:public Statement{
@@ -40,7 +49,7 @@ public:
     stateType type(){return Input;}
     void getValue(string &input);
     string getName();
-private:
+
     string varName;
     int value;
 };
@@ -52,7 +61,7 @@ public:
     void execute(map<string, int> &v);
     int getValue(map<string, int> &v);
     stateType type(){return Print;}
-private:
+
     Tree *exp;
     int value;
 };
@@ -72,7 +81,7 @@ public:
     void execute(map<string, int> &v);
     bool getSuccess(map<string, int> &v);
     stateType type(){return Let;}
-private:
+
     Tree *exp;
     bool success;
 };
@@ -84,7 +93,7 @@ public:
     void execute(map<string, int> &v);
     stateType type(){return Goto;}
     int toLine(map<string, int> &v);
-private:
+
     Tree *exp;
     int nextLine;
 };
@@ -95,8 +104,8 @@ public:
     ~ifStatement(){delete exp;}
     void execute(map<string, int> &v);
     stateType type(){return If;}
-    int toLine(map<string, int> &v);
-private:
+    intAndbool toLine(map<string, int> &v);
+
     Tree *exp;
     int nextLine;
     bool flag;

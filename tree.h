@@ -29,7 +29,7 @@ public:
     int eval(map<string, int> &var);
     bool check(const stack<binary> &opStack, const string &op);
     ExpressionType type() const;
-private:
+
     Expression *root;
 };
 

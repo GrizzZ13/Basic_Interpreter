@@ -89,8 +89,9 @@ int CompoundExp::eval(map<string, int> &v){
 }
 
 string CompoundExp::toString(){
-    if(op == "=") return left->toString() + op + right->toString();
-    else return "(" + left->toString() + op + right->toString() + ")";
+//    if(op == "=") return left->toString() + op + right->toString();
+//    else return "(" + left->toString() + op + right->toString() + ")";
+    return op;
 }
 
 ExpressionType CompoundExp::type(){

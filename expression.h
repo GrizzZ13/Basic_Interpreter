@@ -18,7 +18,6 @@ public:
     virtual ExpressionType type() = 0;
 };
 
-
 class ConstantExp: public Expression
 {
 public:
@@ -56,7 +55,5 @@ public:
     string op;
     Expression *left, *right;
 };
-
-
 
 #endif // EXPRESSION_H
