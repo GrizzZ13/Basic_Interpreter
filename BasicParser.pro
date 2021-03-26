@@ -21,6 +21,7 @@ HEADERS += \
     buffer.h \
     expression.h \
     mainwindow.h \
+    myexception.h \
     statement.h \
     tree.h \
     variables.h

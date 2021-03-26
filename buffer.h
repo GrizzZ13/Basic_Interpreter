@@ -39,6 +39,7 @@ private:
 public:
     Buffer();
     ~Buffer();
+    bool isEmpty();
     void newLine(int l, QString s);
     void clearBuffer();
     QString lineAll();

@@ -16,6 +16,11 @@ Buffer::~Buffer(){
     }
 }
 
+bool Buffer::isEmpty(){
+    if(head == end) return true;
+    return false;
+}
+
 void Buffer::newLine(int l, QString s){
     node *tmp = head;
     node *insert;
@@ -23,10 +28,15 @@ void Buffer::newLine(int l, QString s){
         if(l > tmp->next->line){
             tmp = tmp->next;
         }
-        else{
+        else if(l < tmp->next->line){
             insert = new node(l, s);
             insert->next = tmp->next;
             tmp->next = insert;
+            return;
+        }
+        else if(l == tmp->next->line){
+            tmp = tmp->next;
+            tmp->data = s;
             return;
         }
     }

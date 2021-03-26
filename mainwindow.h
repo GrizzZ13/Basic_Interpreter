@@ -15,9 +15,9 @@
 #include "buffer.h"
 #include "expression.h"
 #include "statement.h"
+#include "myexception.h"
 
 using std::queue;
-
 using std::vector;
 
 QT_BEGIN_NAMESPACE
@@ -38,16 +38,23 @@ public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
 
+    // real function
     void displayBuffer();
     void doitNow(vector<string> &lineVec); //  LET, PRINT, INPUT
     void handleCommand(vector<string> &lineVec); // Command
     void insertLine(int lineNumber, vector<string> &lineVec); // insert a line
     QString syntaxTree(Expression *node);
+    void helpMessage();
+
+    // real function
+    void Run();
+    void HandldInput();
 
 public slots:
     void clearCode();
-    void handleInput();
     void loadFile();
+    // wrapper
+    void handleInput();
     void runBegin();
 };
 #endif // MAINWINDOW_H

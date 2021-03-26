@@ -2,6 +2,7 @@
 #define EXPRESSION_H
 
 #include "variables.h"
+#include "myexception.h"
 #include <string>
 
 using std::string;

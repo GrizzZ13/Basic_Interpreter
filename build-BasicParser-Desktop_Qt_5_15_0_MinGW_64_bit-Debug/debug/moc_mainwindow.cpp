@@ -35,13 +35,13 @@ static const qt_meta_stringdata_MainWindow_t qt_meta_stringdata_MainWindow = {
 QT_MOC_LITERAL(0, 0, 10), // "MainWindow"
 QT_MOC_LITERAL(1, 11, 9), // "clearCode"
 QT_MOC_LITERAL(2, 21, 0), // ""
-QT_MOC_LITERAL(3, 22, 11), // "handleInput"
-QT_MOC_LITERAL(4, 34, 8), // "loadFile"
+QT_MOC_LITERAL(3, 22, 8), // "loadFile"
+QT_MOC_LITERAL(4, 31, 11), // "handleInput"
 QT_MOC_LITERAL(5, 43, 8) // "runBegin"
 
     },
-    "MainWindow\0clearCode\0\0handleInput\0"
-    "loadFile\0runBegin"
+    "MainWindow\0clearCode\0\0loadFile\0"
+    "handleInput\0runBegin"
 };
 #undef QT_MOC_LITERAL
 
@@ -80,8 +80,8 @@ void MainWindow::qt_static_metacall(QObject *_o, QMetaObject::Call _c, int _id, 
         Q_UNUSED(_t)
         switch (_id) {
         case 0: _t->clearCode(); break;
-        case 1: _t->handleInput(); break;
-        case 2: _t->loadFile(); break;
+        case 1: _t->loadFile(); break;
+        case 2: _t->handleInput(); break;
         case 3: _t->runBegin(); break;
         default: ;
         }

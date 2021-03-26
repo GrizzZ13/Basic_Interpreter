@@ -1,5 +1,5 @@
 #include "expression.h"
-#include <QDebug>
+#include <qDebug>
 
 Expression::Expression(){}
 Expression::~Expression(){}
@@ -32,7 +32,7 @@ string IdentifierExp::toString(){
 }
 
 int IdentifierExp::eval(map<string, int> &v){
-    qDebug() << QString::fromStdString(this->name);
+    //qDebug() << QString::fromStdString(this->name);
     return v[this->name];
 }
 
@@ -56,10 +56,13 @@ int CompoundExp::eval(map<string, int> &v){
     if(op == "+") return left->eval(v) + right->eval(v);
     if(op == "-") return left->eval(v) - right->eval(v);
     if(op == "*") return left->eval(v) * right->eval(v);
-    if(op == "/") return left->eval(v) / right->eval(v);
+    if(op == "/") {
+        if(right->eval(v) == 0) throw(myException("division by zero"));
+        return left->eval(v) / right->eval(v);
+    }
     // assignemt
     if(op == "="){
-        qDebug() << "in compound node: assignment begins";
+        //qDebug() << "in compound node: assignment begins";
         if(this->left->type() == Iden){
            string var = this->left->toString();
 
@@ -71,7 +74,7 @@ int CompoundExp::eval(map<string, int> &v){
            v[var] = this->right->eval(v);
            return 1;
         }
-        else return 0;
+        else throw(myException("invalid assignment"));
     }
     // compare
     if(op == "<")
@@ -85,7 +88,7 @@ int CompoundExp::eval(map<string, int> &v){
     if(op == "==")
         return (left->eval(v) == right->eval(v)) ? 1 : 0;
 
-    return 0x3f3f3f3f;
+    throw(myException("invalid operand"));
 }
 
 string CompoundExp::toString(){

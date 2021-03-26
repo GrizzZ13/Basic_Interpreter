@@ -20,11 +20,11 @@ Tree::Tree(string s)
 
             //debug
             table.push_back(binary(tmp, constant));
-            qDebug() << i << "constant" << QString::fromStdString(tmp);
+            //qDebug() << i << "constant" << QString::fromStdString(tmp);
             continue;
         }
         //operand
-        if(s[i]=='<'||s[i]=='>'||s[i]=='+'||s[i]=='-'||s[i]=='*'||s[i]=='/'||s[i]=='('||s[i]==')'||s[i]=='='){
+        else if(s[i]=='<'||s[i]=='>'||s[i]=='+'||s[i]=='-'||s[i]=='*'||s[i]=='/'||s[i]=='('||s[i]==')'||s[i]=='='){
             tmp = tmp + s[i];
             ++i;
             if(i<strlen && s[i]=='=' && (s[i-1]=='>' || s[i-1]=='<' || s[i-1]=='=')){
@@ -34,11 +34,11 @@ Tree::Tree(string s)
 
             //debug
             table.push_back(binary(tmp, operand));
-            qDebug() << i << "operand" << QString::fromStdString(tmp);
+            //qDebug() << i << "operand" << QString::fromStdString(tmp);
             continue;
         }
         //variable
-        if((s[i]<='z'&&s[i]>='a')||(s[i]<='Z'&&s[i]>='A')){
+        else if((s[i]<='z'&&s[i]>='a')||(s[i]<='Z'&&s[i]>='A')){
             while((!(s[i]=='<'||s[i]=='>'||s[i]=='+'||s[i]=='-'||s[i]=='*'||s[i]=='/'||s[i]=='('||s[i]=='='||s[i]==')'))&&i<strlen){
                 tmp = tmp + s[i];
                 ++i;
@@ -46,12 +46,13 @@ Tree::Tree(string s)
 
             //debug
             table.push_back(binary(tmp, variable));
-            qDebug() << i << "variable" << QString::fromStdString(tmp);
+            //qDebug() << i << "variable" << QString::fromStdString(tmp);
             continue;
         }
+        else throw(myException("unknown symbol"));
     }
     //split done
-    qDebug() << "spilt done";
+    //qDebug() << "spilt done";
 
     //construct an expression tree by using a stack
     int veclen = (int)table.size();
@@ -64,7 +65,7 @@ Tree::Tree(string s)
             }
             else if(table[i].stp == constant){
                 int constVal = std::stoi(table[i].data);
-                qDebug() << "constant value" << constVal;//debug
+                //qDebug() << "constant value" << constVal;//debug
                 Expression* treeNode = new ConstantExp(constVal);
                 variableStack.push(treeNode);
             }
@@ -112,12 +113,14 @@ Tree::Tree(string s)
                 root = treeNode;
                 variableStack.push(treeNode);
             }
+            if(operandStack.empty()) throw(myException("unexpected ')'"));
             operandStack.pop();//pop "("
         }
     }
     while(!operandStack.empty()){
         binary tmpOp = operandStack.top();
         operandStack.pop();
+        if(tmpOp.data == "(") throw myException("missing ')'");
 
         Expression *left, *right, *treeNode;
         right = variableStack.top();
@@ -128,9 +131,10 @@ Tree::Tree(string s)
         root = treeNode;
         variableStack.push(treeNode);
     }
+    if(variableStack.size() != 1) throw myException("cannot match variables and operands");
     root = variableStack.top();
 
-    qDebug() << "Tree: Tree constructed";
+    //qDebug() << "Tree: Tree constructed";
 }
 
 Tree::~Tree(){
