@@ -25,6 +25,9 @@ Tree::Tree(string s)
         }
         //operand
         else if(s[i]=='<'||s[i]=='>'||s[i]=='+'||s[i]=='-'||s[i]=='*'||s[i]=='/'||s[i]=='('||s[i]==')'||s[i]=='='){
+
+            if(s[i]=='-' && (i==0 || s[i-1]=='(' || s[i-1]=='=')) table.push_back(binary("0", constant));//negative
+
             tmp = tmp + s[i];
             ++i;
             if(i<strlen && s[i]=='=' && (s[i-1]=='>' || s[i-1]=='<' || s[i-1]=='=')){

@@ -237,7 +237,8 @@ void MainWindow::Run()
         while(ss >> fragment) lineVec.push_back(fragment);
         // remark
         if(lineVec[0]=="REM"){
-            continue;
+            remarkStatement remark(lineVec);
+            syntax = syntax + thisLineNumber + " REM " + QString::fromStdString(remark.remark) + "\n";
             index++;
             end = false;
         }
@@ -309,7 +310,7 @@ void MainWindow::Run()
             if(flag)
                 syntax = syntax + thisLineNumber + " GOTO\n" + "     " + QString::number(nextLine) + "\n";
             else
-                throw myException("invalid line number");
+                throw myException("invalid line number after GOTO");
         }
         else if(lineVec[0]=="IF"){
             ifStatement state(lineVec);
@@ -331,7 +332,7 @@ void MainWindow::Run()
                     }
                 }
                 if(flag == false){
-                    throw myException("if-then state");
+                    throw myException("invalid line number after THEN");
                 }
             }
 
@@ -348,6 +349,7 @@ void MainWindow::HandldInput()
 {
     // handle input
     QString tmpQS = ui->textInput->text();
+    if(tmpQS.length()==0) return;
     ui->textInput->clear();
     string tmpS = tmpQS.toStdString();
 
