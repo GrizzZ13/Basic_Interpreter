@@ -30,7 +30,10 @@ Tree::Tree(string s)
 
             tmp = tmp + s[i];
             ++i;
-            if(i<strlen && s[i]=='=' && (s[i-1]=='>' || s[i-1]=='<' || s[i-1]=='=')){
+            if(i<strlen && s[i]=='=' && (s[i-1]=='>' || s[i-1]=='<' || s[i-1]=='=')){// <=, >=, ==
+                tmp = tmp + s[i];
+                ++i;
+            }else if(i<strlen && s[i]=='*' && s[i-1]=='*'){// **
                 tmp = tmp + s[i];
                 ++i;
             }
@@ -145,7 +148,14 @@ Tree::~Tree(){
 }
 
 bool Tree::check(const stack<binary> &opStack, const string &op){
-    if(op=="*" || op=="/"){
+    if(op=="**"){
+        if(opStack.top().data == "*"|| opStack.top().data == "/"||
+           opStack.top().data == "+"|| opStack.top().data == "-"||
+           opStack.top().data == "<"|| opStack.top().data == ">"||
+           opStack.top().data == "=")
+            return true;
+    }
+    else if(op=="*" || op=="/"){
         if(opStack.top().data == "+"|| opStack.top().data == "-"||
            opStack.top().data == "<"|| opStack.top().data == ">"||
            opStack.top().data == "=")

@@ -1,3 +1,4 @@
+
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 #include "variables.h"
@@ -10,6 +11,7 @@ MainWindow::MainWindow(QWidget *parent)
 
     handlingVar = "";
     handlingVal = 0x3f3f3f3f;
+    gotInput = false;
 
     textBuffer = new Buffer;
     connect(ui->textInput, SIGNAL(returnPressed()), this, SLOT(handleInput()), Qt::DirectConnection);
@@ -115,6 +117,21 @@ void MainWindow::doitNow(vector<string> &lineVec){
     else if(lineVec[0] == "LET"){// assignment
         //qDebug() << "assigment";
         tmp = tmp + lineVec[1];// ???
+        string dfvar="";
+        string exp = lineVec[1];
+        int len = exp.length();
+        for(int i=0;i < len;++i){
+            qDebug() << exp[i];
+            if(!((exp[i]<='Z'&&exp[i]>='A')||(exp[i]<='z'&&exp[i]>='a')||(exp[i]<='9'&&exp[i]>='0')))
+                break;
+            dfvar+=exp[i];
+        }
+        qDebug() << QString::fromStdString(dfvar);
+        auto itr=varTable.find(dfvar);
+        if(itr==varTable.end()){
+            varTable.insert(pair<string,int>(dfvar, 0x3f3f3f3f));
+        }
+
         Tree *expressionTree = new Tree(tmp);
 
         //???????
@@ -131,6 +148,31 @@ void MainWindow::doitNow(vector<string> &lineVec){
         delete expressionTree;
         //qDebug() << "successfully delete expression tree";
         return;
+    }
+    else if(lineVec[0] == "INPUT" && lineVec.size()==2){
+        handlingVar = lineVec[1];
+        gotInput = false;
+
+        // whether this variable exists or not
+        auto itr = varTable.find(handlingVar);
+        if(itr == varTable.end()){
+            varTable.insert(pair<string, int>(handlingVar, 0x3f3f3f3f));
+        }
+        handlingVar = lineVec[1];
+        qDebug() << "begin to input";
+        ui->textInput->setText("? ");
+        ui->textInput->setFocus();
+        while(!gotInput){
+            QTime time;
+            time.start();
+            while(time.elapsed() < 500)
+                QCoreApplication::processEvents();
+            // after the slot function returns, the handling Value will be changed
+        }
+
+        varTable[handlingVar] = handlingVal;
+        handlingVar = "";
+        handlingVal = 0x3f3f3f3f;
     }
 }
 
@@ -236,6 +278,10 @@ void MainWindow::Run()
         ss << thisLine;
         while(ss >> fragment) lineVec.push_back(fragment);
         // remark
+        if(lineVec.size()==0){
+            index++;
+            continue;
+        }
         if(lineVec[0]=="REM"){
             remarkStatement remark(lineVec);
             syntax = syntax + thisLineNumber + " REM " + QString::fromStdString(remark.remark) + "\n";
@@ -248,27 +294,30 @@ void MainWindow::Run()
             // note that the connection type here is direction connection
             // and the running process will be interrupted, wait until the slot return
             handlingVar = lineVec[1];
+            gotInput = false;
 
             // whether this variable exists or not
             auto itr = varTable.find(handlingVar);
             if(itr != varTable.end()){
-                // exists
-                handlingVar = lineVec[1];
-                ui->textInput->setText("? ");
-                ui->textInput->setFocus();
-                while(handlingVal==0x3f3f3f3f){
-                    QEventLoop eventloop;
-                    QTimer::singleShot(100, &eventloop, SLOT(quit()));
-                    eventloop.exec();
-                    // after the slot function returns, the handling Value will be changed
-                }
-
-                varTable[handlingVar] = handlingVal;
-
-                handlingVar = "";
-                handlingVal = 0x3f3f3f3f;
+                varTable.insert(pair<string, int>(handlingVar, 0x3f3f3f3f));
             }
-            else throw myException("undefined variable");
+            // exists
+            handlingVar = lineVec[1];
+            qDebug() << "begin to input";
+            ui->textInput->setText("? ");
+            ui->textInput->setFocus();
+            while(!gotInput){
+                QTime time;
+                time.start();
+                while(time.elapsed() < 500)
+                    QCoreApplication::processEvents();
+                // after the slot function returns, the handling Value will be changed
+            }
+
+            varTable[handlingVar] = handlingVal;
+            index++;
+            handlingVar = "";
+            handlingVal = 0x3f3f3f3f;
         }
         else if(lineVec[0]=="PRINT"){
             syntax = syntax + thisLineNumber+ " PRINT\n";
@@ -285,6 +334,22 @@ void MainWindow::Run()
         }
         else if(lineVec[0]=="LET"){
             syntax = syntax + thisLineNumber + " LET";
+            // declare variable
+            string dfvar="";
+            string exp = lineVec[1];
+            int len = exp.length();
+            for(int i=0;i < len;++i){
+                qDebug() << exp[i];
+                if(!((exp[i]<='Z'&&exp[i]>='A')||(exp[i]<='z'&&exp[i]>='a')||(exp[i]<='9'&&exp[i]>='0')))
+                    break;
+                dfvar+=exp[i];
+            }
+            qDebug() << QString::fromStdString(dfvar);
+            auto itr=varTable.find(dfvar);
+            if(itr==varTable.end()){
+                varTable.insert(pair<string,int>(dfvar, 0x3f3f3f3f));
+            }
+
             letStatement state(lineVec);
             if(state.getSuccess(varTable)){
                 Expression *node = state.exp->root;
@@ -365,10 +430,14 @@ void MainWindow::HandldInput()
     if(!(sstmp >> lineNumber)){
         if(lineVec[0] == "LET" || lineVec[0] == "PRINT" || lineVec[0] == "INPUT")
             doitNow(lineVec);
-        else if(lineVec[0] == "?" && lineVec.size() == 2)
+        else if(lineVec[0] == "?" && lineVec.size() == 2){
+            gotInput = true;
             handlingVal = std::stoi(lineVec[1]);
-        else if(lineVec[0] == "?" && lineVec.size() != 2)
-            throw myException("not valid input");
+        }
+        else if(lineVec[0] == "?" && lineVec.size() != 2){
+            gotInput = true;
+            throw myException("invalid input");
+        }
         else if(lineVec[0]=="LOAD" && lineVec.size() == 1)
             loadFile();
         else if(lineVec[0]=="RUN" && lineVec.size() == 1)

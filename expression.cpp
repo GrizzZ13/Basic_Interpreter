@@ -33,6 +33,8 @@ string IdentifierExp::toString(){
 
 int IdentifierExp::eval(map<string, int> &v){
     //qDebug() << QString::fromStdString(this->name);
+    auto itr=v.find(this->name);
+    if(itr == v.end()) throw(myException("undefined variable"));
     return v[this->name];
 }
 
@@ -60,6 +62,17 @@ int CompoundExp::eval(map<string, int> &v){
         if(right->eval(v) == 0) throw(myException("division by zero"));
         return left->eval(v) / right->eval(v);
     }
+    if(op == "**"){
+        int exp1 = left->eval(v);
+        int exp2 = right->eval(v);
+        if(exp2 < 0) throw(myException("exp2 should not be less than 0"));
+        int tmp = 1;
+        while(exp2 != 0){
+            tmp = tmp * exp1;
+            exp2--;
+        }
+        return tmp;
+    }
     // assignemt
     if(op == "="){
         //qDebug() << "in compound node: assignment begins";
@@ -67,8 +80,8 @@ int CompoundExp::eval(map<string, int> &v){
            string var = this->left->toString();
 
            auto itr = v.find(var);
-           if(itr == varTable.end()){
-               v.insert(pair<string, int>(var, 0x3f3f3f3f));
+           if(itr == v.end()){
+               throw(myException("undifined variable"));
            }
 
            v[var] = this->right->eval(v);

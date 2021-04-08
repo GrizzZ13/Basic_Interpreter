@@ -8,6 +8,7 @@
 #include <QDebug>
 #include <QString>
 #include <QTimer>
+#include <QTime>
 #include <vector>
 #include <queue>
 #include "tree.h"
@@ -33,6 +34,7 @@ private:
     Buffer *textBuffer;
     string handlingVar;
     int handlingVal;
+    bool gotInput;
 
 public:
     MainWindow(QWidget *parent = nullptr);
