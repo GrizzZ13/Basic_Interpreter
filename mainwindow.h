@@ -9,6 +9,8 @@
 #include <QString>
 #include <QTimer>
 #include <QTime>
+#include <QCloseEvent>
+
 #include <vector>
 #include <queue>
 #include "tree.h"
@@ -28,6 +30,8 @@ QT_END_NAMESPACE
 class MainWindow : public QMainWindow
 {
     Q_OBJECT
+protected:
+    void closeEvent(QCloseEvent *event);
 
 private:
     Ui::MainWindow *ui;
@@ -35,6 +39,7 @@ private:
     string handlingVar;
     int handlingVal;
     bool gotInput;
+    bool handlingInput;
 
 public:
     MainWindow(QWidget *parent = nullptr);

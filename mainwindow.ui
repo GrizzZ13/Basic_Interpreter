@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>600</width>
-    <height>688</height>
+    <width>950</width>
+    <height>879</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -137,8 +137,8 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>600</width>
-     <height>22</height>
+     <width>950</width>
+     <height>25</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuBASIC_Interrpeter">

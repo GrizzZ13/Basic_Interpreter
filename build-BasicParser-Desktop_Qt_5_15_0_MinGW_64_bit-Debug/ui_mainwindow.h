@@ -57,7 +57,7 @@ public:
     {
         if (MainWindow->objectName().isEmpty())
             MainWindow->setObjectName(QString::fromUtf8("MainWindow"));
-        MainWindow->resize(600, 688);
+        MainWindow->resize(950, 879);
         centralwidget = new QWidget(MainWindow);
         centralwidget->setObjectName(QString::fromUtf8("centralwidget"));
         horizontalLayout_3 = new QHBoxLayout(centralwidget);
@@ -166,7 +166,7 @@ public:
         MainWindow->setStatusBar(statusbar);
         menubar = new QMenuBar(MainWindow);
         menubar->setObjectName(QString::fromUtf8("menubar"));
-        menubar->setGeometry(QRect(0, 0, 600, 22));
+        menubar->setGeometry(QRect(0, 0, 950, 25));
         menuBASIC_Interrpeter = new QMenu(menubar);
         menuBASIC_Interrpeter->setObjectName(QString::fromUtf8("menuBASIC_Interrpeter"));
         MainWindow->setMenuBar(menubar);

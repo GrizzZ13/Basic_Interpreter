@@ -1,7 +1,15 @@
-
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 #include "variables.h"
+
+void MainWindow::closeEvent(QCloseEvent *event){
+    // when in input mode, there is a child process running in loop
+    // set handlingInput false and gotInput true to jump out of the loop
+    // or the application cannot end normally
+    handlingInput = false;
+    gotInput = true;
+    event->accept();
+}
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -11,7 +19,8 @@ MainWindow::MainWindow(QWidget *parent)
 
     handlingVar = "";
     handlingVal = 0x3f3f3f3f;
-    gotInput = false;
+    gotInput = true;
+    handlingInput = false;
 
     textBuffer = new Buffer;
     connect(ui->textInput, SIGNAL(returnPressed()), this, SLOT(handleInput()), Qt::DirectConnection);
@@ -22,6 +31,9 @@ MainWindow::MainWindow(QWidget *parent)
 
 MainWindow::~MainWindow()
 {
+    qDebug() << "destruct";
+    gotInput = true;
+    handlingInput = false;
     delete textBuffer;
     delete ui;
 }
@@ -33,6 +45,8 @@ void MainWindow::displayBuffer(){
 void MainWindow::clearCode(){
     handlingVar = "";
     handlingVal = 0x3f3f3f3f;
+    handlingInput = false;
+    gotInput = true;
     varTable.clear();
     textBuffer->clearBuffer();
     ui->browserResult->clear();
@@ -41,7 +55,8 @@ void MainWindow::clearCode(){
 }
 
 void MainWindow::loadFile(){
-    QString path = QFileDialog::getOpenFileName(this, tr("Open Image"), "/", tr("Basic Files(*.txt)"));
+    clearCode();
+    QString path = QFileDialog::getOpenFileName(this, tr("Open File"), "/", tr("Basic Files(*.txt)"));
     if(path.length() == 0) return;
 
     clearCode();
@@ -152,6 +167,7 @@ void MainWindow::doitNow(vector<string> &lineVec){
     else if(lineVec[0] == "INPUT" && lineVec.size()==2){
         handlingVar = lineVec[1];
         gotInput = false;
+        handlingInput = true;
 
         // whether this variable exists or not
         auto itr = varTable.find(handlingVar);
@@ -163,10 +179,9 @@ void MainWindow::doitNow(vector<string> &lineVec){
         ui->textInput->setText("? ");
         ui->textInput->setFocus();
         while(!gotInput){
-            QTime time;
-            time.start();
-            while(time.elapsed() < 500)
-                QCoreApplication::processEvents();
+            QEventLoop loop;//定义一个新的事件循环
+            QTimer::singleShot(250, &loop, SLOT(quit()));//创建单次定时器，槽函数为事件循环的退出函数
+            loop.exec();
             // after the slot function returns, the handling Value will be changed
         }
 
@@ -253,7 +268,16 @@ void MainWindow::helpMessage(){
 
 void MainWindow::Run()
 {
-    if(textBuffer->isEmpty()) return;
+    handlingVar = "";
+    handlingVal = 0x3f3f3f3f;
+    varTable.clear();
+    ui->browserResult->clear();
+    ui->browserStructure->clear();
+
+    if(textBuffer->isEmpty()) {
+        ui->browserResult->setText("Empty buffer");
+        return;
+    }
 
     vector<dataNode> NumData = textBuffer->parseLine();
     QString displayBuffer="";
@@ -295,6 +319,7 @@ void MainWindow::Run()
             // and the running process will be interrupted, wait until the slot return
             handlingVar = lineVec[1];
             gotInput = false;
+            handlingInput = true;
 
             // whether this variable exists or not
             auto itr = varTable.find(handlingVar);
@@ -412,6 +437,12 @@ void MainWindow::Run()
 
 void MainWindow::HandldInput()
 {
+    // input mode
+    if(handlingInput && ui->textInput->text().length()==0){
+        ui->browserResult->setText("You must input a number begin with '? '");
+        ui->textInput->setText("? ");
+        return;
+    }
     // handle input
     QString tmpQS = ui->textInput->text();
     if(tmpQS.length()==0) return;
@@ -430,13 +461,23 @@ void MainWindow::HandldInput()
     if(!(sstmp >> lineNumber)){
         if(lineVec[0] == "LET" || lineVec[0] == "PRINT" || lineVec[0] == "INPUT")
             doitNow(lineVec);
-        else if(lineVec[0] == "?" && lineVec.size() == 2){
+        else if(handlingInput && lineVec[0] == "?" && lineVec.size() == 2){
             gotInput = true;
+            handlingInput = false;
             handlingVal = std::stoi(lineVec[1]);
         }
-        else if(lineVec[0] == "?" && lineVec.size() != 2){
+        else if(handlingInput && lineVec[0] == "?" && lineVec.size() != 2){
             gotInput = true;
+            handlingInput = false;
             throw myException("invalid input");
+        }
+        else if(handlingInput && lineVec[0] != "?"){
+            ui->browserResult->setText("You must input a number begin with '? '");
+            ui->textInput->setText("? ");
+            return;
+        }
+        else if(!handlingInput && lineVec[0] == "?"){
+            throw myException("unexpected input");
         }
         else if(lineVec[0]=="LOAD" && lineVec.size() == 1)
             loadFile();
