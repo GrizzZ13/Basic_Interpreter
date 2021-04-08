@@ -17,7 +17,7 @@ CLEAR: Clear buffer, global variables, results and syntax tree
 QUIT : Quit mini basic interpreter
 INPUT: Input variable
 LET  : Assignment statement
-PRINT: Print a constant number, a defined variable or a legal expression
+PRINT: Print a constant number, a defined variable or a the value of legal expression
 ```
 
 ## Statement
