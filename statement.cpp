@@ -15,7 +15,7 @@ remarkStatement::remarkStatement(vector<string> &lineVec){
 /* ----------------------input--------------------- */
 inputStatement::inputStatement(vector<string> &lineVec){
     varName = lineVec[1];
-    value = 0x3f3f3f3f;
+    value = 0x7fffffff;
 }
 
 void inputStatement::execute(map<string, int> &v){

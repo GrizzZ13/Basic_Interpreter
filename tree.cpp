@@ -5,6 +5,9 @@ Tree::Tree(string s)
     stack<binary> operandStack;
     stack<Expression*> variableStack;
     vector<binary> table;
+    vector<binary> table_tmp;
+    int powerNumber = 0;// total power operation number
+    int powerNow = 0;// already handled power operation number
     int strlen = s.length();
     string tmp;
 
@@ -57,6 +60,58 @@ Tree::Tree(string s)
         }
         else throw(myException("unknown symbol"));
     }
+    // add '(' and ')' for the power operation (exp1 ** exp2)
+    for(auto itr=table.begin();itr!=table.end();++itr){
+        if((*itr).stp==operand && (*itr).data=="**") powerNumber++;
+    }
+    while(powerNumber != powerNow){
+        int tableSize = table.size();
+        int count = 0;
+        int tableIndex; // the current handling power operation's index
+        int bracketIndex1, bracketIndex2; // left bracket's index and right bracket's index
+        int countBracket1, countBracket2; // left and right bracket's counts on the same side of "**"
+        for(tableIndex=tableSize-1;tableIndex >= 0;--tableIndex){
+            if(table[tableIndex].stp==operand && table[tableIndex].data=="**") count++;
+            if(count>powerNow) break; // break here and tableIndex is the last "power" operation's index
+        }
+        powerNow++; // the numeber of already handled power operation
+        // add '('  left bracket before table[bracketIndex1]
+        countBracket1=0;
+        countBracket2=0;
+        for(bracketIndex1=tableIndex-1;bracketIndex1>=0;--bracketIndex1){
+            if(table[bracketIndex1].data=="(") countBracket1++;
+            if(table[bracketIndex1].data==")") countBracket2++;
+            if(countBracket1==countBracket2) break;
+        }
+
+        // add ')' right bracket after table[bracketIndex2]
+        countBracket1=0;
+        countBracket2=0;
+        for(bracketIndex2=tableIndex+1;bracketIndex1<=tableSize-1;++bracketIndex2){
+            if(table[bracketIndex2].data=="(") countBracket1++;
+            if(table[bracketIndex2].data==")") countBracket2++;
+            if(countBracket1==countBracket2) break;
+        }
+        int i=-1;
+        while(i<tableSize-1){
+            ++i;
+            if(i==bracketIndex1){
+                table_tmp.push_back(binary("(", operand));
+                table_tmp.push_back(table[i]);
+            }
+            else if(i==bracketIndex2){
+                table_tmp.push_back(table[i]);
+                table_tmp.push_back(binary(")", operand));
+            }
+            else{
+                table_tmp.push_back(table[i]);
+            }
+        }
+        table.clear();
+        table = table_tmp;
+        table_tmp.clear();
+    }
+
     //split done
     //qDebug() << "spilt done";
 

@@ -18,7 +18,7 @@ MainWindow::MainWindow(QWidget *parent)
     ui->setupUi(this);
 
     handlingVar = "";
-    handlingVal = 0x3f3f3f3f;
+    handlingVal = 0x7fffffff;
     gotInput = true;
     handlingInput = false;
 
@@ -44,7 +44,7 @@ void MainWindow::displayBuffer(){
 
 void MainWindow::clearCode(){
     handlingVar = "";
-    handlingVal = 0x3f3f3f3f;
+    handlingVal = 0x7fffffff;
     handlingInput = false;
     gotInput = true;
     varTable.clear();
@@ -144,7 +144,7 @@ void MainWindow::doitNow(vector<string> &lineVec){
         qDebug() << QString::fromStdString(dfvar);
         auto itr=varTable.find(dfvar);
         if(itr==varTable.end()){
-            varTable.insert(pair<string,int>(dfvar, 0x3f3f3f3f));
+            varTable.insert(pair<string,int>(dfvar, 0x7fffffff));
         }
 
         Tree *expressionTree = new Tree(tmp);
@@ -172,7 +172,7 @@ void MainWindow::doitNow(vector<string> &lineVec){
         // whether this variable exists or not
         auto itr = varTable.find(handlingVar);
         if(itr == varTable.end()){
-            varTable.insert(pair<string, int>(handlingVar, 0x3f3f3f3f));
+            varTable.insert(pair<string, int>(handlingVar, 0x7fffffff));
         }
         handlingVar = lineVec[1];
         qDebug() << "begin to input";
@@ -187,7 +187,7 @@ void MainWindow::doitNow(vector<string> &lineVec){
 
         varTable[handlingVar] = handlingVal;
         handlingVar = "";
-        handlingVal = 0x3f3f3f3f;
+        handlingVal = 0x7fffffff;
     }
 }
 
@@ -269,7 +269,7 @@ void MainWindow::helpMessage(){
 void MainWindow::Run()
 {
     handlingVar = "";
-    handlingVal = 0x3f3f3f3f;
+    handlingVal = 0x7fffffff;
     varTable.clear();
     ui->browserResult->clear();
     ui->browserStructure->clear();
@@ -324,7 +324,7 @@ void MainWindow::Run()
             // whether this variable exists or not
             auto itr = varTable.find(handlingVar);
             if(itr != varTable.end()){
-                varTable.insert(pair<string, int>(handlingVar, 0x3f3f3f3f));
+                varTable.insert(pair<string, int>(handlingVar, 0x7fffffff));
             }
             // exists
             handlingVar = lineVec[1];
@@ -342,7 +342,7 @@ void MainWindow::Run()
             varTable[handlingVar] = handlingVal;
             index++;
             handlingVar = "";
-            handlingVal = 0x3f3f3f3f;
+            handlingVal = 0x7fffffff;
         }
         else if(lineVec[0]=="PRINT"){
             syntax = syntax + thisLineNumber+ " PRINT\n";
@@ -372,7 +372,7 @@ void MainWindow::Run()
             qDebug() << QString::fromStdString(dfvar);
             auto itr=varTable.find(dfvar);
             if(itr==varTable.end()){
-                varTable.insert(pair<string,int>(dfvar, 0x3f3f3f3f));
+                varTable.insert(pair<string,int>(dfvar, 0x7fffffff));
             }
 
             letStatement state(lineVec);
