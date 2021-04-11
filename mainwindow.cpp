@@ -91,9 +91,11 @@ void MainWindow::runBegin(){
     }
     catch(std::invalid_argument&){
         ui->browserResult->setText("Error : invalid argument");
+        gotInput = false;
     }
     catch(std::out_of_range&){
         ui->browserResult->setText("Error : out of range");
+        gotInput = false;
     }
 }
 
@@ -108,9 +110,11 @@ void MainWindow::handleInput(){
     }
     catch(std::invalid_argument&){
         ui->browserResult->setText("Error : invalid argument");
+        gotInput = false;
     }
     catch(std::out_of_range&){
         ui->browserResult->setText("Error : out of range");
+        gotInput = false;
     }
 }
 
@@ -328,14 +332,14 @@ void MainWindow::Run()
             }
             // exists
             handlingVar = lineVec[1];
-            qDebug() << "begin to input";
+            syntax = syntax + thisLineNumber + " INPUT " + QString::fromStdString(lineVec[1]) + "\n";
+            ui->browserStructure->setText(syntax);
             ui->textInput->setText("? ");
             ui->textInput->setFocus();
             while(!gotInput){
-                QTime time;
-                time.start();
-                while(time.elapsed() < 500)
-                    QCoreApplication::processEvents();
+                QEventLoop eventloop;
+                QTimer::singleShot(500, &eventloop, SLOT(quit()));
+                eventloop.exec();
                 // after the slot function returns, the handling Value will be changed
             }
 
@@ -355,6 +359,7 @@ void MainWindow::Run()
             end = false;
         }
         else if(lineVec[0]=="END" && lineVec.size()==1){
+            syntax = syntax + thisLineNumber+ " END\n";
             end = true;
         }
         else if(lineVec[0]=="LET"){
@@ -364,12 +369,10 @@ void MainWindow::Run()
             string exp = lineVec[1];
             int len = exp.length();
             for(int i=0;i < len;++i){
-                qDebug() << exp[i];
                 if(!((exp[i]<='Z'&&exp[i]>='A')||(exp[i]<='z'&&exp[i]>='a')||(exp[i]<='9'&&exp[i]>='0')))
                     break;
                 dfvar+=exp[i];
             }
-            qDebug() << QString::fromStdString(dfvar);
             auto itr=varTable.find(dfvar);
             if(itr==varTable.end()){
                 varTable.insert(pair<string,int>(dfvar, 0x7fffffff));
