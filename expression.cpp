@@ -113,8 +113,3 @@ string CompoundExp::toString(){
 ExpressionType CompoundExp::type(){
     return Comp;
 }
-
-
-
-
-

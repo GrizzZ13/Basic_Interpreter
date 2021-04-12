@@ -52,6 +52,7 @@ public:
     void insertLine(int lineNumber, vector<string> &lineVec); // insert a line
     QString syntaxTree(Expression *node);
     void helpMessage();
+    void buildSyntaxTree();
 
     // real function
     void Run();

@@ -58,7 +58,7 @@ Tree::Tree(string s)
             //qDebug() << i << "variable" << QString::fromStdString(tmp);
             continue;
         }
-        else throw(myException("unknown symbol"));
+        else throw myException("unknown symbol");
     }
     // add '(' and ')' for the power operation (exp1 ** exp2)
     for(auto itr=table.begin();itr!=table.end();++itr){
@@ -146,8 +146,10 @@ Tree::Tree(string s)
                     operandStack.pop();
 
                     Expression *left, *right, *treeNode;
+                    if(variableStack.empty()) throw myException("illegal expression");
                     right = variableStack.top();
                     variableStack.pop();
+                    if(variableStack.empty()) throw myException("illegal expression");
                     left = variableStack.top();
                     variableStack.pop();
                     treeNode = new CompoundExp(tmpOp.data, left, right);
@@ -166,15 +168,17 @@ Tree::Tree(string s)
                 operandStack.pop();
 
                 Expression *left, *right, *treeNode;
+                if(variableStack.empty()) throw myException("illegal expression");
                 right = variableStack.top();
                 variableStack.pop();
+                if(variableStack.empty()) throw myException("illegal expression");
                 left = variableStack.top();
                 variableStack.pop();
                 treeNode = new CompoundExp(tmpOp.data, left, right);
                 root = treeNode;
                 variableStack.push(treeNode);
             }
-            if(operandStack.empty()) throw(myException("unexpected ')'"));
+            if(operandStack.empty()) throw myException("unexpected ')'");
             operandStack.pop();//pop "("
         }
     }
@@ -184,8 +188,10 @@ Tree::Tree(string s)
         if(tmpOp.data == "(") throw myException("missing ')'");
 
         Expression *left, *right, *treeNode;
+        if(variableStack.empty()) throw myException("illegal expression");
         right = variableStack.top();
         variableStack.pop();
+        if(variableStack.empty()) throw myException("illegal expression");
         left = variableStack.top();
         variableStack.pop();
         treeNode = new CompoundExp(tmpOp.data, left, right);

@@ -272,11 +272,14 @@ void MainWindow::helpMessage(){
 
 void MainWindow::Run()
 {
+    // syntax tree
+    buildSyntaxTree();
+    // run
     handlingVar = "";
     handlingVal = 0x7fffffff;
     varTable.clear();
     ui->browserResult->clear();
-    ui->browserStructure->clear();
+//    ui->browserStructure->clear();
 
     if(textBuffer->isEmpty()) {
         ui->browserResult->setText("Empty buffer");
@@ -333,7 +336,6 @@ void MainWindow::Run()
             // exists
             handlingVar = lineVec[1];
             syntax = syntax + thisLineNumber + " INPUT " + QString::fromStdString(lineVec[1]) + "\n";
-            ui->browserStructure->setText(syntax);
             ui->textInput->setText("? ");
             ui->textInput->setFocus();
             while(!gotInput){
@@ -435,7 +437,101 @@ void MainWindow::Run()
         }
         else throw myException("invalid instruction");
     }
-    ui->browserStructure->setText(syntax);
+    // ui->browserStructure->setText(syntax);
+}
+
+void MainWindow::buildSyntaxTree()
+{
+    ui->browserStructure->clear();
+
+    if(textBuffer->isEmpty()) {
+        return;
+    }
+
+    vector<dataNode> NumData = textBuffer->parseLine();
+    QString thisLineNumber;
+    stringstream ss;
+    vector<string> lineVec;
+    string thisLine;
+    string fragment;
+    int index = 0;
+    int max = NumData.size();
+
+    QString syntax="";
+    while(max != index){
+
+        lineVec.clear();
+        ss.clear();
+        thisLine = NumData[index].data.toStdString();
+        thisLineNumber = QString::number(NumData[index].line);
+        index++;
+        ss << thisLine;
+        while(ss >> fragment) lineVec.push_back(fragment);
+        if(lineVec.size()==0){
+            continue;
+        }
+        if(lineVec[0]=="REM"){
+            remarkStatement remark(lineVec);
+            syntax = syntax + thisLineNumber + " REM " + QString::fromStdString(remark.remark) + "\n";
+        }
+        else if(lineVec[0]=="INPUT"){
+            qDebug() << "input";
+            // exists
+            if(lineVec.size()==2)
+                syntax = syntax + thisLineNumber + " INPUT\n    " + QString::fromStdString(lineVec[1]) + "\n";
+            else
+                syntax = syntax + thisLineNumber + " ERROR" + "\n";
+        }
+        else if(lineVec[0]=="PRINT"){
+            try{
+                printStatement state(lineVec);
+                Expression *node = state.exp->root;
+                syntax = syntax + thisLineNumber+ " PRINT\n";
+                syntax = syntax + syntaxTree(node);
+            }
+            catch(...){
+                qDebug() << "exception";
+                syntax = syntax + thisLineNumber+ " ERROR\n";
+                qDebug() << thisLineNumber;
+            }
+        }
+        else if(lineVec[0]=="END" && lineVec.size()==1){
+            syntax = syntax + thisLineNumber+ " END\n";
+        }
+        else if(lineVec[0]=="LET"){
+            try{
+                letStatement state(lineVec);
+                Expression *node = state.exp->root;
+                syntax = syntax + thisLineNumber + " LET";
+                syntax = syntax + syntaxTree(node);
+            }
+            catch(...){
+                syntax = syntax + thisLineNumber+ " ERROR\n";
+            }
+        }
+        else if(lineVec[0]=="GOTO"){
+            index++;
+            if(lineVec.size()==2)
+                syntax = syntax + thisLineNumber + " GOTO\n" + "     " + QString::fromStdString(lineVec[1]) + "\n";
+            else
+                syntax = syntax + thisLineNumber + " ERROR\n";
+        }
+        else if(lineVec[0]=="IF"){
+            try{
+                ifStatement state(lineVec);
+                Expression *node = state.exp->root;
+                syntax = syntax + thisLineNumber + " IF THEN\n";
+                syntax = syntax + syntaxTree(node) + "   " + QString::number(state.nextLine) + "\n";
+            }
+            catch(...){
+                syntax = syntax + thisLineNumber + " ERROR\n";
+            }
+        }
+        else {
+            syntax = syntax + thisLineNumber + " ERROR\n";
+        }
+        ui->browserStructure->setText(syntax);
+    }
 }
 
 void MainWindow::HandldInput()
