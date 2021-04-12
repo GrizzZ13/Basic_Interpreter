@@ -1,5 +1,5 @@
 #include "expression.h"
-#include <qDebug>
+#include <QDebug>
 
 Expression::Expression(){}
 Expression::~Expression(){}

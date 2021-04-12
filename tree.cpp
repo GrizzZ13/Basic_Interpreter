@@ -20,10 +20,7 @@ Tree::Tree(string s)
                 tmp = tmp + s[i];
                 ++i;
             }
-
-            //debug
             table.push_back(binary(tmp, constant));
-            //qDebug() << i << "constant" << QString::fromStdString(tmp);
             continue;
         }
         //operand
@@ -111,9 +108,6 @@ Tree::Tree(string s)
         table = table_tmp;
         table_tmp.clear();
     }
-
-    //split done
-    //qDebug() << "spilt done";
 
     //construct an expression tree by using a stack
     int veclen = (int)table.size();

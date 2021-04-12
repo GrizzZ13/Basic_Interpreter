@@ -125,6 +125,9 @@ void MainWindow::doitNow(vector<string> &lineVec){
         for(auto itr = lineVec.begin()+1;itr != lineVec.end();++itr){
             tmp = tmp + *itr;
         }
+        for(auto itr = tmp.begin();itr!=tmp.end();++itr){
+            if(*itr=='='||*itr=='>'||*itr=='<') throw myException("invalid expression after PRINT");
+        }
         Tree *expressionTree = new Tree(tmp);
         int result = expressionTree->eval(varTable);
         ui->browserResult->setText(QString::number(result));
@@ -135,9 +138,17 @@ void MainWindow::doitNow(vector<string> &lineVec){
     }
     else if(lineVec[0] == "LET"){// assignment
         //qDebug() << "assigment";
-        tmp = tmp + lineVec[1];// ???
+        int count = 0;
+        for(auto itr = lineVec.begin()+1;itr != lineVec.end();++itr){
+            tmp = tmp + *itr;
+        }
+        for(auto itr = tmp.begin();itr!=tmp.end();++itr){
+            if(*itr=='=') count++;
+            if(*itr=='>'||*itr=='<') throw myException("invalid expression after LET");
+        }
+        if(count != 1) throw myException("invalid expression after LET");
         string dfvar="";
-        string exp = lineVec[1];
+        string exp = tmp;
         int len = exp.length();
         for(int i=0;i < len;++i){
             qDebug() << exp[i];
@@ -152,14 +163,7 @@ void MainWindow::doitNow(vector<string> &lineVec){
         }
 
         Tree *expressionTree = new Tree(tmp);
-
-        //???????
-        // if(expressionTree->type() == Comp) qDebug() << "Compound";
-        // if(expressionTree->type() == Iden) qDebug() << "Identifier";
-        // if(expressionTree->type() == Cons) qDebug() << "Constant";
-
         int result = expressionTree->eval(varTable);
-
         if(!result)
             ui->browserResult->setText("Syntax error");
 
@@ -169,6 +173,12 @@ void MainWindow::doitNow(vector<string> &lineVec){
         return;
     }
     else if(lineVec[0] == "INPUT" && lineVec.size()==2){
+
+        for(auto itr=lineVec[1].begin();itr!=lineVec[1].end();++itr){
+            if(!(*itr>='a'&&*itr<='z') && !(*itr>='A'&& *itr<='Z') && !(*itr>='0'&&*itr<='9'))
+                throw myException("illegal variable");
+        }
+
         handlingVar = lineVec[1];
         gotInput = false;
         handlingInput = true;
@@ -183,8 +193,8 @@ void MainWindow::doitNow(vector<string> &lineVec){
         ui->textInput->setText("? ");
         ui->textInput->setFocus();
         while(!gotInput){
-            QEventLoop loop;//定义一个新的事件循环
-            QTimer::singleShot(250, &loop, SLOT(quit()));//创建单次定时器，槽函数为事件循环的退出函数
+            QEventLoop loop;
+            QTimer::singleShot(300, &loop, SLOT(quit()));
             loop.exec();
             // after the slot function returns, the handling Value will be changed
         }
@@ -324,6 +334,11 @@ void MainWindow::Run()
             // when enter is pressed, lineEdit emits a signal and calls a slot function
             // note that the connection type here is direction connection
             // and the running process will be interrupted, wait until the slot return
+            for(auto itr=lineVec[1].begin();itr!=lineVec[1].end();++itr){
+                if(!(*itr>='a'&&*itr<='z') && !(*itr>='A'&& *itr<='Z') && !(*itr>='0'&&*itr<='9'))
+                    throw myException("illegal variable");
+            }
+
             handlingVar = lineVec[1];
             gotInput = false;
             handlingInput = true;
@@ -351,6 +366,13 @@ void MainWindow::Run()
             handlingVal = 0x7fffffff;
         }
         else if(lineVec[0]=="PRINT"){
+            string tmp="";
+            for(auto itr = lineVec.begin()+1;itr != lineVec.end();++itr){
+                tmp = tmp + *itr;
+            }
+            for(auto itr = tmp.begin();itr!=tmp.end();++itr){
+                if(*itr=='='||*itr=='>'||*itr=='<') throw myException("invalid expression after PRINT");
+            }
             syntax = syntax + thisLineNumber+ " PRINT\n";
             printStatement state(lineVec);
             Expression *node = state.exp->root;
@@ -366,9 +388,19 @@ void MainWindow::Run()
         }
         else if(lineVec[0]=="LET"){
             syntax = syntax + thisLineNumber + " LET";
+            int count = 0;
+            string tmp = "";
+            for(auto itr = lineVec.begin()+1;itr != lineVec.end();++itr){
+                tmp = tmp + *itr;
+            }
+            for(auto itr = tmp.begin();itr!=tmp.end();++itr){
+                if(*itr=='=') count++;
+                if(*itr=='>'||*itr=='<') throw myException("invalid expression after LET");
+            }
+            if(count != 1) throw myException("invalid expression after LET");
             // declare variable
             string dfvar="";
-            string exp = lineVec[1];
+            string exp = tmp;
             int len = exp.length();
             for(int i=0;i < len;++i){
                 if(!((exp[i]<='Z'&&exp[i]>='A')||(exp[i]<='z'&&exp[i]>='a')||(exp[i]<='9'&&exp[i]>='0')))
@@ -475,15 +507,31 @@ void MainWindow::buildSyntaxTree()
             syntax = syntax + thisLineNumber + " REM " + QString::fromStdString(remark.remark) + "\n";
         }
         else if(lineVec[0]=="INPUT"){
-            qDebug() << "input";
-            // exists
-            if(lineVec.size()==2)
-                syntax = syntax + thisLineNumber + " INPUT\n    " + QString::fromStdString(lineVec[1]) + "\n";
-            else
-                syntax = syntax + thisLineNumber + " ERROR" + "\n";
+            try{
+                if(lineVec.size()==2){
+                    for(auto itr=lineVec[1].begin();itr!=lineVec[1].end();++itr){
+                        if(!(*itr>='a'&&*itr<='z') && !(*itr>='A'&& *itr<='Z') && !(*itr>='0'&&*itr<='9'))
+                            throw myException("illegal variable");
+                    }
+                    syntax = syntax + thisLineNumber + " INPUT\n    " + QString::fromStdString(lineVec[1]) + "\n";
+                }
+                else
+                    throw myException("illegal variable");
+            }
+            catch(...){
+                syntax = syntax + thisLineNumber+ " ERROR\n";
+                qDebug() << thisLineNumber;
+            }
         }
         else if(lineVec[0]=="PRINT"){
             try{
+                string tmp = "";
+                for(auto itr = lineVec.begin()+1;itr != lineVec.end();++itr){
+                    tmp = tmp + *itr;
+                }
+                for(auto itr = tmp.begin();itr!=tmp.end();++itr){
+                    if(*itr=='='||*itr=='>'||*itr=='<') throw myException("invalid expression after PRINT");
+                }
                 printStatement state(lineVec);
                 Expression *node = state.exp->root;
                 syntax = syntax + thisLineNumber+ " PRINT\n";
@@ -500,6 +548,17 @@ void MainWindow::buildSyntaxTree()
         }
         else if(lineVec[0]=="LET"){
             try{
+                string tmp = "";
+                int count = 0;
+                for(auto itr = lineVec.begin()+1;itr != lineVec.end();++itr){
+                    tmp = tmp + *itr;
+                }
+                for(auto itr = tmp.begin();itr!=tmp.end();++itr){
+                    if(*itr=='=') count++;
+                    if(*itr=='>'||*itr=='<') throw myException("invalid expression after LET");
+                }
+                if(count != 1) throw myException("invalid expression after LET");
+
                 letStatement state(lineVec);
                 Expression *node = state.exp->root;
                 syntax = syntax + thisLineNumber + " LET";
