@@ -178,6 +178,7 @@ void MainWindow::doitNow(vector<string> &lineVec){
             if(!(*itr>='a'&&*itr<='z') && !(*itr>='A'&& *itr<='Z') && !(*itr>='0'&&*itr<='9'))
                 throw myException("illegal variable");
         }
+        if(lineVec[1][0]>='0'&&lineVec[1][0]<='9') throw myException("illegal variable");
 
         handlingVar = lineVec[1];
         gotInput = false;
@@ -188,7 +189,6 @@ void MainWindow::doitNow(vector<string> &lineVec){
         if(itr == varTable.end()){
             varTable.insert(pair<string, int>(handlingVar, 0x7fffffff));
         }
-        handlingVar = lineVec[1];
         qDebug() << "begin to input";
         ui->textInput->setText("? ");
         ui->textInput->setFocus();
@@ -338,6 +338,7 @@ void MainWindow::Run()
                 if(!(*itr>='a'&&*itr<='z') && !(*itr>='A'&& *itr<='Z') && !(*itr>='0'&&*itr<='9'))
                     throw myException("illegal variable");
             }
+            if(lineVec[1][0]>='0'&&lineVec[1][0]<='9') throw myException("illegal variable");
 
             handlingVar = lineVec[1];
             gotInput = false;
@@ -513,6 +514,7 @@ void MainWindow::buildSyntaxTree()
                         if(!(*itr>='a'&&*itr<='z') && !(*itr>='A'&& *itr<='Z') && !(*itr>='0'&&*itr<='9'))
                             throw myException("illegal variable");
                     }
+                    if(lineVec[1][0]>='0'&&lineVec[1][0]<='9') throw myException("illegal variable");
                     syntax = syntax + thisLineNumber + " INPUT\n    " + QString::fromStdString(lineVec[1]) + "\n";
                 }
                 else

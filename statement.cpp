@@ -89,6 +89,7 @@ ifStatement::ifStatement(vector<string> &lineVec){
         tmp = tmp + *itr;
         itr++;
     }
+    if(itr == lineVec.end()) throw myException("invalid statement IF-THEN");
     exp = new Tree(tmp);
     if(*itr == "THEN") itr++;
     nextLine = std::stoi(*itr);
