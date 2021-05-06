@@ -11,6 +11,7 @@ using std::string;
 using std::vector;
 using std::stringstream;
 
+/* with pointer */
 struct node{
     int line;
     QString data;
@@ -21,6 +22,7 @@ struct node{
     }
 };
 
+/* without pointer */
 struct dataNode{
     int line;
     QString data;

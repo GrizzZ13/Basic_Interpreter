@@ -11,11 +11,44 @@ Tree::Tree(string s)
     int strlen = s.length();
     string tmp;
 
-    //split string
+    // string
+
+
+
+    //split expression
     for(int i = 0;i < strlen;){
         tmp = "";
-        //constant
-        if(s[i] <= '9' && s[i] >= '0'){
+        // string
+        if(s[i]=='\''){
+            ++i;
+            while(i<strlen && s[i] != '\'' && s[i] != '\"'){
+                tmp = tmp + s[i];
+                ++i;
+            }
+            if(s[i] == '\"' || i==strlen)
+                throw myException("string format error");
+            else{
+                ++i;
+                table.push_back((binary(tmp, str)));
+            }
+            continue;
+        }
+        else if(s[i]=='\"'){
+            ++i;
+            while(i<strlen && s[i] != '\"' && s[i] != '\''){
+                tmp = tmp + s[i];
+                ++i;
+            }
+            if(s[i] == '\'' || i==strlen)
+                throw myException("string format error");
+            else{
+                ++i;
+                table.push_back((binary(tmp, str)));
+            }
+            continue;
+        }
+        // constant
+        else if(s[i] <= '9' && s[i] >= '0'){
             while(s[i] <= '9' && s[i] >= '0' && i < strlen){
                 tmp = tmp + s[i];
                 ++i;
@@ -23,7 +56,7 @@ Tree::Tree(string s)
             table.push_back(binary(tmp, constant));
             continue;
         }
-        //operand
+        // operand
         else if(s[i]=='<'||s[i]=='>'||s[i]=='+'||s[i]=='-'||s[i]=='*'||s[i]=='/'||s[i]=='('||s[i]==')'||s[i]=='='){
 
             if(s[i]=='-' && (i==0 || s[i-1]=='(' || s[i-1]=='=')) table.push_back(binary("0", constant));//negative
@@ -124,6 +157,10 @@ Tree::Tree(string s)
                 Expression* treeNode = new ConstantExp(constVal);
                 variableStack.push(treeNode);
             }
+            else if(table[i].stp == str){
+                Expression* treeNode = new StringExp(table[i].data);
+                variableStack.push(treeNode);
+            }
         }
         else if(table[i].data != "(" && table[i].data != ")"){
             while(true){
@@ -192,7 +229,7 @@ Tree::Tree(string s)
         root = treeNode;
         variableStack.push(treeNode);
     }
-    if(variableStack.size() != 1) throw myException("cannot match variables and operands");
+    if(variableStack.size() != 1) throw myException("error occurred when splitting expression");
     root = variableStack.top();
 
     //qDebug() << "Tree: Tree constructed";
@@ -223,8 +260,8 @@ bool Tree::check(const stack<binary> &opStack, const string &op){
     return false;
 }
 
-int Tree::eval(map<string, int> &var){
-    return root->eval(var);
+Evaluation Tree::eval(){
+    return root->eval();
 }
 
 ExpressionType Tree::type() const{

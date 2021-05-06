@@ -38,6 +38,7 @@ private:
     Buffer *textBuffer;
     string handlingVar;
     int handlingVal;
+    string handlingStr;
     bool gotInput;
     bool handlingInput;
 
@@ -48,11 +49,13 @@ public:
     // real function
     void displayBuffer();
     void doitNow(vector<string> &lineVec); //  LET, PRINT, INPUT
-    void handleCommand(vector<string> &lineVec); // Command
     void insertLine(int lineNumber, vector<string> &lineVec); // insert a line
     QString syntaxTree(Expression *node);
     void helpMessage();
     void buildSyntaxTree();
+
+    bool isString(string str);
+    string trimString(string str);
 
     // real function
     void Run();

@@ -9,7 +9,7 @@
 using std::stack;
 using std::vector;
 
-enum strType {constant, operand, variable};
+enum strType {constant, operand, variable, str};
 
 struct binary{
     string data;// store data
@@ -26,7 +26,7 @@ class Tree
 public:
     Tree(string s);
     ~Tree();
-    int eval(map<string, int> &var);
+    Evaluation eval();
     bool check(const stack<binary> &opStack, const string &op);
     ExpressionType type() const;
 

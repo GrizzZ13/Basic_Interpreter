@@ -33,7 +33,7 @@
           <item>
            <widget class="QLabel" name="label_4">
             <property name="text">
-             <string>TextLabel</string>
+             <string>Code</string>
             </property>
            </widget>
           </item>
@@ -54,7 +54,7 @@
           <item>
            <widget class="QLabel" name="label_3">
             <property name="text">
-             <string>TextLabel</string>
+             <string>Result</string>
             </property>
            </widget>
           </item>
@@ -66,19 +66,37 @@
        </layout>
       </item>
       <item>
-       <layout class="QVBoxLayout" name="verticalLayout_3">
-        <property name="sizeConstraint">
-         <enum>QLayout::SetNoConstraint</enum>
-        </property>
+       <layout class="QHBoxLayout" name="horizontalLayout_6">
         <item>
-         <widget class="QLabel" name="label_2">
-          <property name="text">
-           <string>TextLabel</string>
+         <layout class="QVBoxLayout" name="verticalLayout_3">
+          <property name="sizeConstraint">
+           <enum>QLayout::SetNoConstraint</enum>
           </property>
-         </widget>
+          <item>
+           <widget class="QLabel" name="label_2">
+            <property name="text">
+             <string>Structure</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QTextBrowser" name="browserStructure"/>
+          </item>
+         </layout>
         </item>
         <item>
-         <widget class="QTextBrowser" name="browserStructure"/>
+         <layout class="QVBoxLayout" name="verticalLayout_5">
+          <item>
+           <widget class="QLabel" name="label_5">
+            <property name="text">
+             <string>Silly</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QTextBrowser" name="browserSilly"/>
+          </item>
+         </layout>
         </item>
        </layout>
       </item>
@@ -98,6 +116,13 @@
          <widget class="QPushButton" name="buttonRun">
           <property name="text">
            <string>RUN</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="buttonDebug">
+          <property name="text">
+           <string>DEBUG</string>
           </property>
          </widget>
         </item>

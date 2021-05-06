@@ -1,4 +1,5 @@
 #include "expression.h"
+#include "variables.h"
 #include <QDebug>
 
 Expression::Expression(){}
@@ -9,8 +10,8 @@ ConstantExp::ConstantExp(int val){
     value = val;
 }
 
-int ConstantExp::eval(map<string, int> &v){
-    return value;
+Evaluation ConstantExp::eval(){
+    return Evaluation(INT, value);
 }
 
 string ConstantExp::toString(){
@@ -31,11 +32,15 @@ string IdentifierExp::toString(){
     return name;
 }
 
-int IdentifierExp::eval(map<string, int> &v){
+Evaluation IdentifierExp::eval(){
     //qDebug() << QString::fromStdString(this->name);
-    auto itr=v.find(this->name);
-    if(itr == v.end()) throw(myException("undefined variable"));
-    return v[this->name];
+    auto itr_int=varTable.find(this->name);
+    if(itr_int == varTable.end()) throw(myException("undefined variable"));
+    if(varTable[this->name]==0x7fffffff){
+        return Evaluation(STRING, strTable[this->name]);
+    }
+    else
+        return Evaluation(INT, varTable[this->name]);
 }
 
 ExpressionType IdentifierExp::type(){
@@ -54,52 +59,67 @@ CompoundExp::~CompoundExp(){
     delete right;
 }
 
-int CompoundExp::eval(map<string, int> &v){
-    if(op == "+") return left->eval(v) + right->eval(v);
-    if(op == "-") return left->eval(v) - right->eval(v);
-    if(op == "*") return left->eval(v) * right->eval(v);
+Evaluation CompoundExp::eval(){
+    if(op == "+") return left->eval() + right->eval();
+    if(op == "-") return left->eval() - right->eval();
+    if(op == "*") return left->eval() * right->eval();
     if(op == "/") {
-        if(right->eval(v) == 0) throw(myException("division by zero"));
-        return left->eval(v) / right->eval(v);
+        if(right->eval().equalZero()) throw(myException("division by zero"));
+        return left->eval() / right->eval();
     }
     if(op == "**"){
-        int exp1 = left->eval(v);
-        int exp2 = right->eval(v);
+        int exp1 = left->eval().getValInt();
+        int exp2 = right->eval().getValInt();
         if(exp2 < 0) throw(myException("exp2 should not be less than 0"));
         int tmp = 1;
         while(exp2 != 0){
             tmp = tmp * exp1;
             exp2--;
         }
-        return tmp;
+        return Evaluation(INT, tmp);
     }
-    // assignemt
+    // assignment
     if(op == "="){
         //qDebug() << "in compound node: assignment begins";
         if(this->left->type() == Iden){
-           string var = this->left->toString();
-
-           auto itr = v.find(var);
-           if(itr == v.end()){
-               throw(myException("undifined variable"));
+            string var = this->left->toString();
+            if(varTable.find(var) == varTable.end()){
+                throw myException("undefined variable");
+            }
+           if(typeTable.find(var)!=typeTable.end()){
+               if(typeTable[var]==_INT && this->right->eval().getTypeEval()!=INT)
+                   throw myException("cannot cast non-int to int");
+               if(typeTable[var]==_STRING && this->right->eval().getTypeEval()!=STRING)
+                   throw myException("cannot cast npn-string to string");
            }
-
-           v[var] = this->right->eval(v);
-           return 1;
+           if(this->right->eval().getTypeEval()==INT){
+               if(typeTable.find(var)==typeTable.end())
+                   typeTable.insert(pair<string, variableType>(var, _INT));
+               varTable[var] = this->right->eval().getValInt();
+               return Evaluation(BOOLEAN, true);
+           }
+           else if(this->right->eval().getTypeEval()==STRING){
+               if(typeTable.find(var)==typeTable.end())
+                   typeTable.insert(pair<string, variableType>(var, _STRING));
+               strTable[var] = this->right->eval().toString();
+               return Evaluation(BOOLEAN, true);
+           }
+           else
+               throw myException("cannot assign successfully");
         }
         else throw(myException("invalid assignment"));
     }
     // compare
     if(op == "<")
-        return (left->eval(v) < right->eval(v)) ? 1 : 0;
+        return left->eval() < right->eval();
     if(op == ">")
-        return (left->eval(v) > right->eval(v)) ? 1 : 0;
+        return left->eval() > right->eval();
     if(op == "<=")
-        return (left->eval(v) <= right->eval(v)) ? 1 : 0;
+        return left->eval() <= right->eval();
     if(op == ">=")
-        return (left->eval(v) >= right->eval(v)) ? 1 : 0;
+        return left->eval() >= right->eval();
     if(op == "==")
-        return (left->eval(v) == right->eval(v)) ? 1 : 0;
+        return left->eval() == right->eval();
 
     throw(myException("invalid operand"));
 }
@@ -113,3 +133,25 @@ string CompoundExp::toString(){
 ExpressionType CompoundExp::type(){
     return Comp;
 }
+
+/*************************************************************/
+
+StringExp::StringExp(string _data) {
+    data = _data;
+}
+
+Evaluation StringExp::eval() {
+    return Evaluation(STRING, data);
+}
+
+string StringExp::toString() {
+    return data;
+}
+
+ExpressionType StringExp::type() {
+    return String;
+}
+
+
+
+

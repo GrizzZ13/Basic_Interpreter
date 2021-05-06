@@ -1,0 +1,10 @@
+release/buffer.o
+release/Evaluation.o
+release/expression.o
+release/main.o
+release/mainwindow.o
+release/mainwindow.o
+release/statement.o
+release/tree.o
+release/variables.o
+release/moc_mainwindow.o

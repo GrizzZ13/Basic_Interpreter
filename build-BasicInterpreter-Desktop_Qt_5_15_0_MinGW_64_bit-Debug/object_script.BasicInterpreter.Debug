@@ -1,0 +1,10 @@
+debug/buffer.o
+debug/Evaluation.o
+debug/expression.o
+debug/main.o
+debug/mainwindow.o
+debug/mainwindow.o
+debug/statement.o
+debug/tree.o
+debug/variables.o
+debug/moc_mainwindow.o
