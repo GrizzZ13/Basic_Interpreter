@@ -1,0 +1,4 @@
+1	 INPUT a
+2	 INPUTS b
+3	 PRINT a
+4	 END

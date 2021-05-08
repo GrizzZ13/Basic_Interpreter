@@ -89,12 +89,12 @@
           <item>
            <widget class="QLabel" name="label_5">
             <property name="text">
-             <string>Silly</string>
+             <string>Variables</string>
             </property>
            </widget>
           </item>
           <item>
-           <widget class="QTextBrowser" name="browserSilly"/>
+           <widget class="QTextBrowser" name="browserVariable"/>
           </item>
          </layout>
         </item>
@@ -163,7 +163,7 @@
      <x>0</x>
      <y>0</y>
      <width>950</width>
-     <height>25</height>
+     <height>22</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuBASIC_Interrpeter">

@@ -45,7 +45,7 @@ public:
     QTextBrowser *browserStructure;
     QVBoxLayout *verticalLayout_5;
     QLabel *label_5;
-    QTextBrowser *browserSilly;
+    QTextBrowser *browserVariable;
     QHBoxLayout *horizontalLayout;
     QPushButton *buttonLoad;
     QPushButton *buttonRun;
@@ -134,10 +134,10 @@ public:
 
         verticalLayout_5->addWidget(label_5);
 
-        browserSilly = new QTextBrowser(centralwidget);
-        browserSilly->setObjectName(QString::fromUtf8("browserSilly"));
+        browserVariable = new QTextBrowser(centralwidget);
+        browserVariable->setObjectName(QString::fromUtf8("browserVariable"));
 
-        verticalLayout_5->addWidget(browserSilly);
+        verticalLayout_5->addWidget(browserVariable);
 
 
         horizontalLayout_6->addLayout(verticalLayout_5);
@@ -196,7 +196,7 @@ public:
         MainWindow->setStatusBar(statusbar);
         menubar = new QMenuBar(MainWindow);
         menubar->setObjectName(QString::fromUtf8("menubar"));
-        menubar->setGeometry(QRect(0, 0, 950, 25));
+        menubar->setGeometry(QRect(0, 0, 950, 22));
         menuBASIC_Interrpeter = new QMenu(menubar);
         menuBASIC_Interrpeter->setObjectName(QString::fromUtf8("menuBASIC_Interrpeter"));
         MainWindow->setMenuBar(menubar);
@@ -214,7 +214,7 @@ public:
         label_4->setText(QCoreApplication::translate("MainWindow", "Code", nullptr));
         label_3->setText(QCoreApplication::translate("MainWindow", "Result", nullptr));
         label_2->setText(QCoreApplication::translate("MainWindow", "Structure", nullptr));
-        label_5->setText(QCoreApplication::translate("MainWindow", "Silly", nullptr));
+        label_5->setText(QCoreApplication::translate("MainWindow", "Variables", nullptr));
         buttonLoad->setText(QCoreApplication::translate("MainWindow", "LOAD", nullptr));
         buttonRun->setText(QCoreApplication::translate("MainWindow", "RUN", nullptr));
         buttonDebug->setText(QCoreApplication::translate("MainWindow", "DEBUG", nullptr));
