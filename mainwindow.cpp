@@ -49,9 +49,7 @@ void MainWindow::clearCode(){
     handlingStr = "";
     handlingInput = false;
     gotInput = true;
-    varTable.clear();
-    strTable.clear();
-    typeTable.clear();
+    clearVariables();
     textBuffer->clearBuffer();
     ui->browserResult->clear();
     ui->browserCode->clear();
@@ -87,21 +85,342 @@ void MainWindow::loadFile(){
 }
 
 void MainWindow::runBegin(){
+    int index;
     try {
-        Run();
+        if(textBuffer->isEmpty()) {
+            ui->browserResult->setText("Empty buffer");
+            return;
+        }
+
+        vector<SyntaxNode> SyntaxBlocks;
+        vector<dataNode> NumData;
+        QString displayBuffer="";
+        vector<string> lineVec;
+        string thisLine;
+        int max;
+        bool end;
+
+        if(env.debug){
+            env.debug = false;
+            ui->buttonLoad->setEnabled(true);
+            ui->buttonClear->setEnabled(true);
+            SyntaxBlocks = env.SyntaxBlocks;
+            NumData = env.NumData;
+            displayBuffer = env.displayBuffer;
+            lineVec = env.lineVec;
+            thisLine = env.thisLine;
+            index = env.index;
+            max = env.max;
+            end = env.end;
+        }
+        else{
+            SyntaxBlocks = buildSyntaxTree();
+            NumData = textBuffer->parseLine();
+            displayBuffer="";
+            thisLine = "";
+            index = 0;
+            max = NumData.size();
+            end = false;
+
+            handlingVar = "";
+            handlingVal = 0x7fffffff;
+            handlingStr = "";
+            strTable.clear();
+            varTable.clear();
+            typeTable.clear();
+            showVariables();
+            ui->browserResult->clear();
+            ui->browserStructure->clear();
+        }
+
+        clearHighlight();
+
+        displaySyntaxTree(SyntaxBlocks);
+        // highlight
+        highlightWrong(SyntaxBlocks);
+
+        while(!end){
+            if(max == index) break;
+
+            lineVec.clear();
+            thisLine = NumData[index].data.toStdString();
+
+            /*********************************************************/
+
+            int parsingIndex = 0;
+            int maxIndex = thisLine.length();
+            vector<string> lineVec;
+            string buf = "";
+            while(parsingIndex<maxIndex){
+                buf = "";
+                while(parsingIndex < maxIndex && thisLine[parsingIndex]!=' ' && thisLine[parsingIndex]!=','){
+                    if(thisLine[parsingIndex]=='\"'){
+                        if(!buf.empty()){
+                            lineVec.push_back(buf);
+                            buf="";
+                        }
+                        buf += thisLine[parsingIndex];
+                        parsingIndex++;
+                        while(parsingIndex < maxIndex && thisLine[parsingIndex]!='\"'){
+                            buf += thisLine[parsingIndex];
+                            parsingIndex++;
+                        }
+                        if(thisLine[parsingIndex]=='\"'){
+                            buf += thisLine[parsingIndex];
+                            parsingIndex++;
+                        }
+                        lineVec.push_back(buf);
+                        std::cout << buf << std::endl;
+                        buf = "";
+                    }
+                    else if(thisLine[parsingIndex]=='\''){
+                        if(!buf.empty()){
+                            lineVec.push_back(buf);
+                            buf="";
+                        }
+                        buf += thisLine[parsingIndex];
+                        parsingIndex++;
+                        while(parsingIndex < maxIndex && thisLine[parsingIndex]!='\''){
+                            buf += thisLine[parsingIndex];
+                            parsingIndex++;
+                        }
+                        if(thisLine[parsingIndex]=='\''){
+                            buf += thisLine[parsingIndex];
+                            parsingIndex++;
+                        }
+                        lineVec.push_back(buf);
+                        buf = "";
+                    }
+                    else{
+                        buf += thisLine[parsingIndex];
+                        parsingIndex++;
+                    }
+                }
+                if(!buf.empty())
+                    lineVec.push_back(buf);
+                if(thisLine[parsingIndex]==' ' || thisLine[parsingIndex]==','){
+                    parsingIndex++;
+                }
+            }
+
+            /*********************************************************/
+
+            // remark
+            if(lineVec.size()==0){
+                index++;
+                continue;
+            }
+            if(lineVec[0]=="REM"){
+                remarkStatement remark(lineVec);
+                index++;
+                end = false;
+            }
+            else if(lineVec[0] == "INPUT" && lineVec.size()==2){
+
+                for(auto itr=lineVec[1].begin();itr!=lineVec[1].end();++itr){
+                    if(!(*itr>='a'&&*itr<='z') && !(*itr>='A'&& *itr<='Z') && !(*itr>='0'&&*itr<='9'))
+                        throw myException("illegal variable");
+                }
+                if(lineVec[1][0]>='0'&&lineVec[1][0]<='9') throw myException("illegal variable");
+
+                handlingVar = lineVec[1];
+
+                // whether this variable exists or not
+                auto itr = typeTable.find(handlingVar);
+                if(itr == typeTable.end()){
+                    typeTable.insert(pair<string, variableType>(handlingVar, _INT));
+                }
+                else if(typeTable[handlingVar]==_STRING){
+                    handlingVar = "";
+                    throw myException("input type error");
+                }
+                if(varTable.find(handlingVar)==varTable.end()){
+                    varTable.insert(pair<string, int>(handlingVar, 0x7fffffff));
+                    strTable.insert(pair<string, string>(handlingVar, ""));
+                }
+                gotInput = false;
+                handlingInput = true;
+
+                qDebug() << "begin to input";
+                ui->textInput->setText("? ");
+                ui->textInput->setFocus();
+                while(!gotInput){
+                    QEventLoop loop;
+                    QTimer::singleShot(300, &loop, SLOT(quit()));
+                    loop.exec();
+                    // after the slot function returns, the handling Value will be changed
+                }
+
+                varTable[handlingVar] = handlingVal;
+                handlingVar = "";
+                handlingVal = 0x7fffffff;
+                ++index;
+            }
+            else if(lineVec[0] == "INPUTS" && lineVec.size()==2){
+
+                for(auto itr=lineVec[1].begin();itr!=lineVec[1].end();++itr){
+                    if(!(*itr>='a'&&*itr<='z') && !(*itr>='A'&& *itr<='Z') && !(*itr>='0'&&*itr<='9'))
+                        throw myException("illegal variable");
+                }
+                if(lineVec[1][0]>='0'&&lineVec[1][0]<='9') throw myException("illegal variable");
+
+                handlingVar = lineVec[1];
+
+                // whether this variable exists or not
+                auto itr = typeTable.find(handlingVar);
+                if(itr == typeTable.end()){
+                    typeTable.insert(pair<string, variableType>(handlingVar, _STRING));
+                }
+                else if(typeTable[handlingVar]==_INT){
+                    handlingVar = "";
+                    throw myException("inputs type error");
+                }
+                if(strTable.find(handlingVar)==strTable.end()){
+                    varTable.insert(pair<string, int>(handlingVar, 0x7fffffff));
+                    strTable.insert(pair<string, string>(handlingVar, ""));
+                }
+                gotInput = false;
+                handlingInput = true;
+
+                qDebug() << "begin to inputs";
+                ui->textInput->setText("?? ");
+                ui->textInput->setFocus();
+                while(!gotInput){
+                    QEventLoop loop;
+                    QTimer::singleShot(300, &loop, SLOT(quit()));
+                    loop.exec();
+                    // after the slot function returns, the handling String will be changed
+                }
+
+                strTable[handlingVar] = handlingStr;
+                handlingVar = "";
+                handlingStr = "";
+                ++index;
+            }
+            else if(lineVec[0]=="PRINT"){
+                string tmp="";
+                for(auto itr = lineVec.begin()+1;itr != lineVec.end();++itr){
+                    tmp = tmp + *itr;
+                }
+                for(auto itr = tmp.begin();itr!=tmp.end();++itr){
+                    if(*itr=='='||*itr=='>'||*itr=='<'||*itr=='\''||*itr=='\"')
+                        throw myException("invalid expression after PRINT");
+                }
+                printStatement state(lineVec);
+                displayBuffer = displayBuffer + QString::fromStdString(state.getValue()) + '\n';
+                index++;
+                end = false;
+            }
+            else if(lineVec[0]=="PRINTF"){
+                // to be continued
+                string tmp = printfStatement(lineVec).getValue();
+                displayBuffer = displayBuffer + QString::fromStdString(tmp) + '\n';
+                index++;
+                end = false;
+            }
+            else if(lineVec[0]=="END" && lineVec.size()==1){
+                end = true;
+            }
+            else if(lineVec[0]=="LET"){
+                int count = 0;
+                string tmp = "";
+                for(auto itr = lineVec.begin()+1;itr != lineVec.end();++itr){
+                    tmp = tmp + *itr;
+                }
+                for(auto itr = tmp.begin();itr!=tmp.end();++itr){
+                    if(*itr=='=') count++;
+                    if(*itr=='>'||*itr=='<') throw myException("invalid expression after LET");
+                }
+                if(count != 1) throw myException("invalid expression after LET");
+                // declare variable
+                string dfvar="";
+                string exp = tmp;
+                int len = exp.length();
+                for(int i=0;i < len;++i){
+                    if(!((exp[i]<='Z'&&exp[i]>='A')||(exp[i]<='z'&&exp[i]>='a')||(exp[i]<='9'&&exp[i]>='0')))
+                        break;
+                    dfvar+=exp[i];
+                }
+                auto itr=varTable.find(dfvar);
+                if(itr==varTable.end()){
+                    varTable.insert(pair<string,int>(dfvar, 0x7fffffff));
+                    strTable.insert(pair<string, string>(dfvar, ""));
+                }
+
+                letStatement state(lineVec);
+                if(state.getSuccess()){
+                    index++;
+                    end = false;
+                }
+                else
+                    throw myException("invalid assignment");
+            }
+            else if(lineVec[0]=="GOTO" && lineVec.size()==2){
+                gotoStatement state(lineVec);
+                int nextLine = state.toLine();
+                bool flag = false;
+                for(int i = 0;i < max;++i){
+                    if(NumData[i].line == nextLine){
+                        index = i;
+                        end = false;
+                        flag = true;
+                        break;
+                    }
+                }
+                if(!flag)
+                    throw myException("invalid line number after GOTO");
+            }
+            else if(lineVec[0]=="IF"){
+                ifStatement state(lineVec);
+                int nextLine = state.toLine().i;
+                bool jump = state.toLine().b;
+                bool flag = false;
+
+                if(!jump){// do not jump
+                    index++;
+                    end = false;
+                }
+                else{// jump
+                    for(int i = 0;i < max;++i){
+                        if(NumData[i].line == nextLine){
+                            index = i;
+                            end = false;
+                            flag = true;
+                            break;
+                        }
+                    }
+                    if(flag == false){
+                        throw myException("invalid line number after THEN");
+                    }
+                }
+            }
+            else throw myException("invalid instruction");
+        }
+        ui->browserResult->setText(displayBuffer);
+        showVariables();
+        clearVariables();
     }
     catch(myException &err) {
         string errInfo = "Error : ";
         errInfo = errInfo + err.info();
+        clearVariables();
+        clearHighlight();
+        highlight(index, COLOR_RED);
         ui->browserResult->setText(QString::fromStdString(errInfo));
     }
     catch(std::invalid_argument&){
+        clearVariables();
+        clearHighlight();
+        highlight(index, COLOR_RED);
         ui->browserResult->setText("Error : invalid argument");
-        gotInput = false;
+        gotInput = true;
     }
     catch(std::out_of_range&){
+        clearVariables();
+        clearHighlight();
+        highlight(index, COLOR_RED);
         ui->browserResult->setText("Error : out of range");
-        gotInput = false;
+        gotInput = true;
     }
 }
 
@@ -567,8 +886,7 @@ void MainWindow::Run()
                     throw myException("invalid expression after PRINT");
             }
             printStatement state(lineVec);
-            displayBuffer = displayBuffer + QString::fromStdString(state.getValue()) + '\n';
-            ui->browserResult->setText(displayBuffer);
+            displayBuffer = displayBuffer + QString::fromStdString(state.getValue()) + '\n';       
             index++;
             end = false;
         }
@@ -576,7 +894,6 @@ void MainWindow::Run()
             // to be continued
             string tmp = printfStatement(lineVec).getValue();
             displayBuffer = displayBuffer + QString::fromStdString(tmp) + '\n';
-            ui->browserResult->setText(displayBuffer);
             index++;
             end = false;
         }
@@ -658,7 +975,9 @@ void MainWindow::Run()
         }
         else throw myException("invalid instruction");
     }
+    ui->browserResult->setText(displayBuffer);
     showVariables();
+    clearVariables();
 }
 
 vector<SyntaxNode> MainWindow::buildSyntaxTree()
@@ -804,6 +1123,11 @@ vector<SyntaxNode> MainWindow::buildSyntaxTree()
                 syntax = thisLineNumber + " IF THEN\n" + syntaxTree(node) + "   " + QString::number(state.nextLine) + "\n";
                 SyntaxBlocks.push_back(SyntaxNode(true, syntax));
             }
+            catch(myException &e){
+                syntax = thisLineNumber + QString::fromStdString(e.info()) + "\n";
+                SyntaxBlocks.push_back(SyntaxNode(false, syntax));
+            }
+
             catch(...){
                 syntax = thisLineNumber + " ERROR\n";
                 SyntaxBlocks.push_back(SyntaxNode(false, syntax));
@@ -1005,13 +1329,13 @@ void MainWindow::showVariables(){
         if(itr->second == _INT){
             string var = itr->first;
             int val = varTable.find(var)->second;
-            QString a = QString::fromStdString(var) + " : " + QString::number(val) + "\n";
+            QString a = QString::fromStdString(var) + " - INT : " + QString::number(val) + "\n";
             variables += a;
         }
         else{
             string var = itr->first;
             string str = strTable.find(var)->second;
-            QString a = QString::fromStdString(var) + " : \"" + QString::fromStdString(str) + "\"\n";
+            QString a = QString::fromStdString(var) + " -STR : \"" + QString::fromStdString(str) + "\"\n";
             variables += a;
         }
     }
@@ -1019,14 +1343,8 @@ void MainWindow::showVariables(){
 }
 
 void MainWindow::Debug(){
+    int index;
     try {
-        // run
-        handlingVar = "";
-        handlingVal = 0x7fffffff;
-        handlingStr = "";
-        ui->browserResult->clear();
-    //    ui->browserStructure->clear();
-
         if(textBuffer->isEmpty()) {
             ui->browserResult->setText("Empty buffer");
             return;
@@ -1049,6 +1367,11 @@ void MainWindow::Debug(){
             ui->buttonLoad->setEnabled(false);
             ui->buttonClear->setEnabled(false);
 
+            handlingVar = "";
+            handlingVal = 0x7fffffff;
+            handlingStr = "";
+            ui->browserResult->clear();
+
             env.SyntaxBlocks = SyntaxBlocks;
             env.NumData = textBuffer->parseLine();
             env.displayBuffer = "";
@@ -1070,7 +1393,7 @@ void MainWindow::Debug(){
         QString displayBuffer= env.displayBuffer;
         vector<string> lineVec = env.lineVec;
         string thisLine = env.thisLine;
-        int index = env.index;
+        index = env.index;
         int max = env.max;
         bool end = env.end;
 
@@ -1389,22 +1712,28 @@ void MainWindow::Debug(){
     catch(myException &e) {
         QString msg = QString::fromStdString(e.info());
         qDebug() << msg;
-        if(msg=="normal")
-            msg = "Program exited normally";
-        else
-            msg = "Program exited because of wrong expression";
         env.debug = false;
         ui->buttonLoad->setEnabled(true);
         ui->buttonClear->setEnabled(true);
         clearHighlight();
-        QMessageBox::about(NULL, "EXIT", msg);
+        clearVariables();
+        if(msg=="normal"){
+            QMessageBox::about(NULL, "EXIT", "Program exited normally");
+        }
+        else{
+            QMessageBox::about(NULL, "EXIT", "Program exited because of wrong expression");
+            highlight(index, COLOR_RED);
+        }
     }
     catch(...){
         qDebug() << "exception";
         env.debug = false;
         ui->buttonLoad->setEnabled(true);
         ui->buttonClear->setEnabled(true);
+        clearVariables();
         clearHighlight();
+        highlight(index, COLOR_RED);
+        gotInput = true;
         QMessageBox::about(NULL, "EXIT", "Program exit for unexpected reason");
     }
 }
@@ -1436,4 +1765,10 @@ void MainWindow::displaySyntaxTreeLine(vector<SyntaxNode> &SyntaxBlocks, int ind
     SyntaxNode syntaxNode = SyntaxBlocks[index];
     QString syntax = syntaxNode.syntaxTree;
     ui->browserStructure->setText(syntax);
+}
+
+void MainWindow::clearVariables(){
+    varTable.clear();
+    strTable.clear();
+    typeTable.clear();
 }

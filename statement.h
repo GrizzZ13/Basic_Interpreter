@@ -86,6 +86,7 @@ public:
     string getValue();
     stateType type(){return Printf;}
     bool isString(string &str);
+    bool validString(string &str);
     string trimString(string str);// 删除开头和结尾的引号
     void trimSpace(vector<string> &lineVec); // 去除空格
 

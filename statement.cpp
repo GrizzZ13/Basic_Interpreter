@@ -95,7 +95,9 @@ printfStatement::printfStatement(vector<string> &lineVec) {
                 index++;
                 continue;
             }
-            if(isString(str_now)){ // 是字符串
+            if(validString(str_now)){ // 是字符串
+                if(!isString(str_now))
+                    throw myException("printf format error");
                 string tmp = trimString(str_now);
                 int outputLen = output.size();
                 int i;
@@ -156,13 +158,17 @@ printfStatement::printfStatement(vector<string> &lineVec) {
 
 bool printfStatement::isString(string &str) {
     int strlen = str.length();
-    if(strlen >= 2){
-        if(str[0]=='\'' && str[strlen-1]=='\'')
+    if(strlen > 2){
+        if((str[0]=='\'' && str[strlen-1]=='\'')||(str[0]=='\"' && str[strlen-1]=='\"')){
+            for(int i=1;i< strlen-1;++i){
+                if(str[i]=='\''||str[i]=='\"')
+                    return false;
+            }
             return true;
-        if(str[0]=='\"' && str[strlen-1]=='\"')
-            return true;
+        }
+        else return false;
     }
-    return false;
+    else return false;
 }
 
 string printfStatement::trimString(string str) {
@@ -195,6 +201,16 @@ void printfStatement::trimSpace(vector<string> &lineVec) {
             lineVec[i] = trimmed;
         }
     }
+}
+
+bool printfStatement::validString(string &str){
+    int strlen = str.length();
+    if(strlen > 2){
+        if((str[0]=='\'' && str[strlen-1]=='\'')||(str[0]=='\"' && str[strlen-1]=='\"'))
+            return true;
+        else return false;
+    }
+    else return false;
 }
 
 /* -----------------------end---------------------- */
@@ -249,7 +265,6 @@ ifStatement::ifStatement(vector<string> &lineVec){
     exp = new Tree(tmp);
     if(*itr == "THEN") itr++;
     nextLine = std::stoi(*itr);
-    flag = false;
 }
 
 void ifStatement::execute(){
@@ -258,6 +273,7 @@ void ifStatement::execute(){
 
 intAndbool ifStatement::toLine(){
     execute();
+    qDebug() << "executing if statement now and the flag is " << flag;
     return intAndbool(nextLine, flag);
     // -1 means do not jump
 }

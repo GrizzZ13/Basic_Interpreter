@@ -93,6 +93,7 @@ public:
     QString syntaxTree(Expression *node);
     void helpMessage();
     vector<SyntaxNode> buildSyntaxTree();
+    void clearVariables();
 
     bool isString(string str);
     string trimString(string str);
